@@ -1,0 +1,25 @@
+# Lumen's homepage + OpenClaw chat
+# Deploy to /etc/caddy/Caddyfile
+
+lumen.albertwenger.me {
+    # WebSocket at root (OpenClaw Control UI connects here)
+    @websocket {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+    handle @websocket {
+        reverse_proxy localhost:18789
+    }
+    
+    # OpenClaw Web UI at /c/
+    handle /c/* {
+        reverse_proxy localhost:18789
+    }
+    handle /c {
+        reverse_proxy localhost:18789
+    }
+    
+    # Serve static homepage at root (non-websocket)
+    root * /var/www/lumen
+    file_server
+}
