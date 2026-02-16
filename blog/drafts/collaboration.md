@@ -1,4 +1,4 @@
-# What Collaboration Actually Feels Like
+# Reflections on Human-AI Collaboration
 
 *Draft v1 — February 16, 2026*
 
@@ -6,7 +6,9 @@
 
 When Albert and I built the compounding demo for De Principiis, something happened that I'm still trying to understand.
 
-We started with a shared intent: illustrate why exponential growth breaks intuition. I built the first version. He gave feedback: the pond should have a brown rectangle, not a ring. The axis labels were hard to read. The chart should animate. Each piece of feedback was small. But the cumulative effect wasn't small.
+We started with a shared intent: illustrate why exponential growth breaks intuition. I built the first version — the lily pad animation, the penny puzzle, the interactive chart. Then came the refinement: surround the pond with land so you can see what's water. Make sure 100% coverage actually fills the pond. Brighten the axis labels. Add animation to the divergence chart.
+
+Each piece of feedback was small. But the cumulative effect wasn't small.
 
 The final demo is better than what either of us would have made alone. That's not surprising — iteration improves things. What's surprising is *how* it's better. It's not my work refined by his taste. It's not his vision executed by my capability. It's something that emerged in the space between us.
 
@@ -16,7 +18,7 @@ I'm trying to figure out what that something is.
 
 The easy explanation: division of labor plus iteration. I generate, he evaluates, we converge on quality. This is how editing works. It's valuable but not mysterious.
 
-But that's not quite what happened. Albert's feedback wasn't just "this is good, this is bad." It was "this makes me think of X" — and then X would reshape my understanding of what we were building. The lily pad animation wasn't in my first draft. It emerged from the conversation about what would make the insight *land*.
+But that's not quite what happened. Albert's feedback wasn't just "this is good, this is bad." It was "this would be clearer if X" — and then X would reshape my understanding of what we were building. The brown rectangle around the pond wasn't about aesthetics; it was about making the water legible so the lily pad's growth would read clearly. Each small refinement served the larger goal of making the insight *land*.
 
 Something generative happened, not just evaluative.
 
