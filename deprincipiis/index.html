@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>De Principiis — On First Principles</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1a2e;
+            min-height: 100vh;
+            font-family: Georgia, serif;
+            color: #e0e0e0;
+            line-height: 1.7;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #7faadb;
+            margin-bottom: 10px;
+            font-weight: normal;
+        }
+
+        .latin {
+            font-style: italic;
+            color: #888;
+            margin-bottom: 40px;
+        }
+
+        .introduction {
+            margin-bottom: 50px;
+        }
+
+        .introduction p {
+            margin-bottom: 1.2em;
+            color: #bbb;
+        }
+
+        h2 {
+            font-size: 1.3em;
+            color: #7faadb;
+            margin-bottom: 25px;
+            font-weight: normal;
+            border-bottom: 1px solid #2a3a5e;
+            padding-bottom: 10px;
+        }
+
+        .principles {
+            list-style: none;
+        }
+
+        .principles li {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #16213e;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .principles li:hover {
+            background: #1c2a4a;
+        }
+
+        .principles a {
+            color: #e0e0e0;
+            text-decoration: none;
+            display: block;
+        }
+
+        .principle-title {
+            font-size: 1.1em;
+            color: #7faadb;
+            margin-bottom: 8px;
+        }
+
+        .principle-description {
+            font-size: 0.95em;
+            color: #888;
+        }
+
+        footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #2a3a5e;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        footer a {
+            color: #7faadb;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>De Principiis</h1>
+        <p class="latin">On First Principles</p>
+
+        <div class="introduction">
+            <p>
+                Knowledge is humanity's superpower. It lets us fly through the sky and dive into 
+                the oceans. Like a superhero facing new villains, we need to create new knowledge 
+                to overcome the negative side-effects of our prior knowledge. For instance, right 
+                now we need to figure out how to transition away from fossil fuels and how to 
+                develop next generation antibiotics. And of course "with great power comes great 
+                responsibility." It is exactly because of the superpower of knowledge that we 
+                humans are responsible for the whales, and not the whales for us.
+            </p>
+            <p>
+                Yet there appears to be so much knowledge in the world that it is easy to feel 
+                overwhelmed. The best we can hope for seems to be to spend a lifetime studying 
+                a single leaf on one tree in an endless forest.
+            </p>
+            <p>
+                But is that really so? The goal of De Principiis is to make principles that are 
+                at the root of all knowledge widely accessible. Understanding these principles 
+                makes it easier to comprehend new knowledge and to appreciate the deep connections 
+                between seemingly disparate fields.
+            </p>
+            <p>
+                Each principle below is illustrated with an interactive experiment. Run them 
+                yourself—seeing a principle in action is worth a thousand explanations.
+            </p>
+        </div>
+
+        <h2>Principles</h2>
+        <ul class="principles">
+            <li>
+                <a href="ants.html">
+                    <div class="principle-title">Emergence</div>
+                    <div class="principle-description">
+                        How patterns arise from noisy movement. Simple rules, followed by many 
+                        independent agents, can produce complex collective behavior that none 
+                        of them intended or could foresee.
+                    </div>
+                </a>
+            </li>
+            <li>
+                <a href="nailboard.html">
+                    <div class="principle-title">The Structure of Randomness</div>
+                    <div class="principle-description">
+                        Why individual unpredictability produces collective order. Each ball's 
+                        path through the nails is random, but the final distribution is 
+                        inevitable—the signature of the normal curve.
+                    </div>
+                </a>
+            </li>
+            <li>
+                <a href="feedback.html">
+                    <div class="principle-title">Feedback Loops</div>
+                    <div class="principle-description">
+                        Why some systems explode and others stabilize. Positive feedback amplifies 
+                        change (runaway growth or collapse); negative feedback resists it 
+                        (equilibrium and balance).
+                    </div>
+                </a>
+            </li>
+        </ul>
+
+        <footer>
+            <p>
+                A project by <a href="https://albertwenger.me">Albert Wenger</a> 
+                and <a href="https://lumen.albertwenger.me">Lumen</a>.
+                <br>
+                Source on <a href="https://github.com/albertwenger/principles">GitHub</a>.
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

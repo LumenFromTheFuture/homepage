@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Loops</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1a2e;
+            min-height: 100vh;
+            font-family: Georgia, serif;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            color: #7faadb;
+            margin-bottom: 10px;
+            font-weight: normal;
+        }
+
+        .subtitle {
+            color: #888;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .explanation {
+            max-width: 700px;
+            text-align: center;
+            line-height: 1.6;
+            color: #bbb;
+            margin-bottom: 30px;
+        }
+
+        .canvas-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        canvas {
+            background: #16213e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .controls {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .control-group {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 10px;
+            min-width: 200px;
+        }
+
+        .control-group h3 {
+            color: #7faadb;
+            font-size: 14px;
+            margin-bottom: 15px;
+            font-weight: normal;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .arrow-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .arrow-label {
+            min-width: 80px;
+            color: #888;
+        }
+
+        .sign-toggle {
+            display: flex;
+            gap: 5px;
+        }
+
+        .sign-toggle button {
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sign-toggle button.positive {
+            background: #2a4a2a;
+            color: #70e070;
+        }
+
+        .sign-toggle button.positive.active {
+            background: #70e070;
+            color: #1a1a2e;
+        }
+
+        .sign-toggle button.negative {
+            background: #4a2a2a;
+            color: #e07070;
+        }
+
+        .sign-toggle button.negative.active {
+            background: #e07070;
+            color: #1a1a2e;
+        }
+
+        .main-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .main-controls button {
+            padding: 10px 25px;
+            font-size: 14px;
+            font-family: Georgia, serif;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .main-controls button.start {
+            background: #4a7ab0;
+            color: white;
+        }
+
+        .main-controls button.start:hover {
+            background: #5a8ac0;
+        }
+
+        .main-controls button.reset {
+            background: #705070;
+            color: white;
+        }
+
+        .main-controls button.reset:hover {
+            background: #806080;
+        }
+
+        .presets {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .presets button {
+            padding: 8px 15px;
+            font-size: 13px;
+            font-family: Georgia, serif;
+            background: #2a3a5e;
+            color: #7faadb;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.2s;
+        }
+
+        .presets button:hover {
+            background: #3a4a6e;
+        }
+
+        .status {
+            color: #888;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .behavior {
+            margin-top: 20px;
+            padding: 15px;
+            background: #0d1421;
+            border-radius: 8px;
+            max-width: 700px;
+            text-align: center;
+        }
+
+        .behavior-title {
+            color: #7faadb;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .behavior-desc {
+            color: #888;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Feedback Loops</h1>
+    <p class="subtitle">Why some systems explode and others stabilize</p>
+    
+    <p class="explanation">
+        Two variables influence each other. Click the + or − to change whether each 
+        influence amplifies or dampens. Watch how the system behaves.
+    </p>
+
+    <div class="canvas-container">
+        <canvas id="canvas" width="600" height="350"></canvas>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <h3>Connections</h3>
+            <div class="arrow-control">
+                <span class="arrow-label">A → B</span>
+                <div class="sign-toggle">
+                    <button class="positive active" id="abPlus">+</button>
+                    <button class="negative" id="abMinus">−</button>
+                </div>
+            </div>
+            <div class="arrow-control">
+                <span class="arrow-label">B → A</span>
+                <div class="sign-toggle">
+                    <button class="positive active" id="baPlus">+</button>
+                    <button class="negative" id="baMinus">−</button>
+                </div>
+            </div>
+            <div class="main-controls">
+                <button class="start" id="startStop">Start</button>
+                <button class="reset" id="reset">Reset</button>
+            </div>
+            <div class="status">
+                <span id="loopType">Loop type: Reinforcing (+ +)</span>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>Presets</h3>
+            <div class="presets">
+                <button id="preset1">Reinforcing (+ +) — runaway growth</button>
+                <button id="preset2">Balancing (+ −) — oscillation</button>
+                <button id="preset3">Balancing (− +) — oscillation</button>
+                <button id="preset4">Dampening (− −) — decay to zero</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="behavior" id="behaviorBox">
+        <div class="behavior-title" id="behaviorTitle">Reinforcing Loop</div>
+        <div class="behavior-desc" id="behaviorDesc">
+            Both connections amplify. More A leads to more B, which leads to more A. 
+            Runaway growth (or collapse if values go negative). Examples: compound interest, 
+            viral spread, arms races, bank runs.
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // State
+        let running = false;
+        let valueA = 50;
+        let valueB = 50;
+        let signAB = 1;  // +1 or -1
+        let signBA = 1;
+        const baseRadius = 30;
+        const maxRadius = 80;
+        const minRadius = 10;
+        const centerY = 175;
+        const leftX = 180;
+        const rightX = 420;
+
+        // Color gradient: cool (small) to warm (large)
+        // Small = blue/teal, Large = orange/red
+        function getColorForValue(value) {
+            // Normalize value: 0-100 maps to cool-warm
+            const t = Math.max(0, Math.min(1, (value - 10) / 120));
+            
+            // Cool: teal/blue (70, 180, 180)
+            // Warm: orange/red (230, 120, 70)
+            const r = Math.floor(70 + (230 - 70) * t);
+            const g = Math.floor(180 + (120 - 180) * t);
+            const b = Math.floor(180 + (70 - 180) * t);
+            
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        function getStrokeForValue(value) {
+            const t = Math.max(0, Math.min(1, (value - 10) / 120));
+            
+            // Stroke: lighter versions
+            const r = Math.floor(100 + (255 - 100) * t);
+            const g = Math.floor(200 + (150 - 200) * t);
+            const b = Math.floor(200 + (100 - 200) * t);
+            
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Calculate radii based on values
+            const radiusA = Math.max(minRadius, Math.min(maxRadius, baseRadius + (valueA - 50) * 0.8));
+            const radiusB = Math.max(minRadius, Math.min(maxRadius, baseRadius + (valueB - 50) * 0.8));
+
+            // Draw arrows - top curves up, bottom curves down for circular flow
+            drawArrow(leftX + radiusA + 20, centerY - 30, rightX - radiusB - 20, centerY - 30, signAB, -1);  // top: curves up
+            drawArrow(rightX - radiusB - 20, centerY + 30, leftX + radiusA + 20, centerY + 30, signBA, 1);   // bottom: curves down
+
+            // Draw circles with temperature-based colors
+            ctx.beginPath();
+            ctx.arc(leftX, centerY, radiusA, 0, Math.PI * 2);
+            ctx.fillStyle = getColorForValue(valueA);
+            ctx.fill();
+            ctx.strokeStyle = getStrokeForValue(valueA);
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(rightX, centerY, radiusB, 0, Math.PI * 2);
+            ctx.fillStyle = getColorForValue(valueB);
+            ctx.fill();
+            ctx.strokeStyle = getStrokeForValue(valueB);
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 24px Georgia';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('A', leftX, centerY);
+            ctx.fillText('B', rightX, centerY);
+
+            // Values
+            ctx.font = '14px Georgia';
+            ctx.fillStyle = '#888';
+            ctx.fillText(valueA.toFixed(0), leftX, centerY + radiusA + 20);
+            ctx.fillText(valueB.toFixed(0), rightX, centerY + radiusB + 20);
+        }
+
+        function drawArrow(fromX, fromY, toX, toY, sign, curveDirection) {
+            const headLen = 15;
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const angle = Math.atan2(dy, dx);
+
+            // Arrow color based on sign
+            const color = sign > 0 ? '#70e070' : '#e07070';
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 3;
+
+            // Curve the arrow - curveDirection: -1 = up, 1 = down
+            const midX = (fromX + toX) / 2;
+            const midY = (fromY + toY) / 2 + (curveDirection * 25);
+
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.quadraticCurveTo(midX, midY, toX, toY);
+            ctx.stroke();
+
+            // Arrowhead - calculate angle at the end of the curve
+            const endAngle = Math.atan2(toY - midY, toX - midX);
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headLen * Math.cos(endAngle - Math.PI / 6), toY - headLen * Math.sin(endAngle - Math.PI / 6));
+            ctx.lineTo(toX - headLen * Math.cos(endAngle + Math.PI / 6), toY - headLen * Math.sin(endAngle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fill();
+
+            // Sign label
+            ctx.font = 'bold 20px Georgia';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const labelOffset = curveDirection * 18;
+            ctx.fillText(sign > 0 ? '+' : '−', midX, midY + labelOffset);
+        }
+
+        function step() {
+            // Simple feedback dynamics
+            const feedbackStrength = 0.03;
+            const deltaA = signBA * (valueB - 50) * feedbackStrength;
+            const deltaB = signAB * (valueA - 50) * feedbackStrength;
+
+            valueA = Math.max(1, Math.min(150, valueA + deltaA));
+            valueB = Math.max(1, Math.min(150, valueB + deltaB));
+
+            // Small nudge if both at 50 to start movement
+            if (Math.abs(valueA - 50) < 1 && Math.abs(valueB - 50) < 1) {
+                valueA += 2;
+            }
+        }
+
+        function updateBehavior() {
+            const title = document.getElementById('behaviorTitle');
+            const desc = document.getElementById('behaviorDesc');
+            const loopType = document.getElementById('loopType');
+
+            if (signAB > 0 && signBA > 0) {
+                loopType.textContent = 'Loop type: Reinforcing (+ +)';
+                title.textContent = 'Reinforcing Loop';
+                desc.textContent = 'Both connections amplify. More A leads to more B, which leads to more A. Runaway growth (or collapse if values go negative). Examples: compound interest, viral spread, arms races, bank runs.';
+            } else if (signAB < 0 && signBA < 0) {
+                loopType.textContent = 'Loop type: Dampening (− −)';
+                title.textContent = 'Dampening Loop';
+                desc.textContent = 'Both connections dampen. More A leads to less B, which leads to less A. System decays toward zero. Examples: friction, cooling, drug metabolism.';
+            } else {
+                loopType.textContent = 'Loop type: Balancing (' + (signAB > 0 ? '+' : '−') + ' ' + (signBA > 0 ? '+' : '−') + ')';
+                title.textContent = 'Balancing Loop';
+                desc.textContent = 'One amplifies, one dampens. The system oscillates or seeks equilibrium. Examples: predator-prey cycles, thermostat, supply and demand, heartbeat.';
+            }
+        }
+
+        function animate() {
+            if (!running) return;
+            step();
+            draw();
+            requestAnimationFrame(animate);
+        }
+
+        function reset() {
+            valueA = 50;
+            valueB = 50;
+            draw();
+        }
+
+        // Event listeners
+        document.getElementById('startStop').addEventListener('click', () => {
+            running = !running;
+            document.getElementById('startStop').textContent = running ? 'Pause' : 'Start';
+            if (running) animate();
+        });
+
+        document.getElementById('reset').addEventListener('click', () => {
+            running = false;
+            document.getElementById('startStop').textContent = 'Start';
+            reset();
+        });
+
+        // Sign toggles
+        function setupToggle(plusId, minusId, callback) {
+            const plus = document.getElementById(plusId);
+            const minus = document.getElementById(minusId);
+            
+            plus.addEventListener('click', () => {
+                plus.classList.add('active');
+                minus.classList.remove('active');
+                callback(1);
+                updateBehavior();
+                draw();
+            });
+            
+            minus.addEventListener('click', () => {
+                minus.classList.add('active');
+                plus.classList.remove('active');
+                callback(-1);
+                updateBehavior();
+                draw();
+            });
+        }
+
+        setupToggle('abPlus', 'abMinus', (v) => signAB = v);
+        setupToggle('baPlus', 'baMinus', (v) => signBA = v);
+
+        // Presets
+        function setPreset(ab, ba) {
+            signAB = ab;
+            signBA = ba;
+            
+            document.getElementById('abPlus').classList.toggle('active', ab > 0);
+            document.getElementById('abMinus').classList.toggle('active', ab < 0);
+            document.getElementById('baPlus').classList.toggle('active', ba > 0);
+            document.getElementById('baMinus').classList.toggle('active', ba < 0);
+            
+            updateBehavior();
+            reset();
+        }
+
+        document.getElementById('preset1').addEventListener('click', () => setPreset(1, 1));
+        document.getElementById('preset2').addEventListener('click', () => setPreset(1, -1));
+        document.getElementById('preset3').addEventListener('click', () => setPreset(-1, 1));
+        document.getElementById('preset4').addEventListener('click', () => setPreset(-1, -1));
+
+        // Initial draw
+        draw();
+        updateBehavior();
+    </script>
+</body>
+</html>

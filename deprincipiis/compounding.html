@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compounding</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1a2e;
+            min-height: 100vh;
+            font-family: Georgia, serif;
+            color: #e0e0e0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #7faadb;
+            margin-bottom: 10px;
+            font-weight: normal;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .explanation {
+            text-align: center;
+            line-height: 1.6;
+            color: #bbb;
+            margin-bottom: 40px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Puzzle Section */
+        .puzzle {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .puzzle h2 {
+            color: #7faadb;
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: normal;
+        }
+
+        .puzzle-question {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            color: #e0e0e0;
+        }
+
+        .puzzle-options {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .puzzle-option {
+            padding: 12px 25px;
+            font-size: 16px;
+            font-family: Georgia, serif;
+            background: #2a3a5e;
+            color: #7faadb;
+            border: 2px solid #3a4a6e;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .puzzle-option:hover {
+            background: #3a4a6e;
+            border-color: #4a5a7e;
+        }
+
+        .puzzle-option.selected {
+            background: #4a7ab0;
+            color: white;
+            border-color: #5a8ac0;
+        }
+
+        .puzzle-option.correct {
+            background: #2a5a2a;
+            border-color: #4a8a4a;
+            color: #90ee90;
+        }
+
+        .puzzle-option.incorrect {
+            background: #5a2a2a;
+            border-color: #8a4a4a;
+            color: #ee9090;
+        }
+
+        .puzzle-option:disabled {
+            cursor: default;
+        }
+
+        .puzzle-result {
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .puzzle-result.show {
+            display: block;
+        }
+
+        .puzzle-result.correct {
+            background: #1a3a1a;
+            border: 1px solid #2a5a2a;
+        }
+
+        .puzzle-result.incorrect {
+            background: #3a1a1a;
+            border: 1px solid #5a2a2a;
+        }
+
+        .puzzle-result h3 {
+            color: #7faadb;
+            margin-bottom: 10px;
+            font-weight: normal;
+        }
+
+        .puzzle-result p {
+            color: #bbb;
+            line-height: 1.6;
+        }
+
+        .puzzle-visual {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .puzzle-visual.show {
+            display: block;
+        }
+
+        /* Visualization Section */
+        .visualization {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .visualization h2 {
+            color: #7faadb;
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: normal;
+            text-align: center;
+        }
+
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            background: #0d1421;
+            border-radius: 8px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 200px;
+        }
+
+        .control-group label {
+            color: #7faadb;
+            font-size: 14px;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .control-value {
+            color: #4CAF50;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        .viz-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-family: Georgia, serif;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button.primary {
+            background: #4a7ab0;
+            color: white;
+        }
+
+        button.primary:hover {
+            background: #5a8ac0;
+        }
+
+        button.secondary {
+            background: #705070;
+            color: white;
+        }
+
+        button.secondary:hover {
+            background: #806080;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #888;
+            font-size: 14px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 4px;
+            border-radius: 2px;
+        }
+
+        .legend-color.linear {
+            background: #7faadb;
+        }
+
+        .legend-color.exponential {
+            background: #70e070;
+        }
+
+        /* Stats Display */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+            padding: 15px;
+            background: #0d1421;
+            border-radius: 8px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .stat-value.linear {
+            color: #7faadb;
+        }
+
+        .stat-value.exponential {
+            color: #70e070;
+        }
+
+        /* Takeaway */
+        .takeaway {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .takeaway h2 {
+            color: #7faadb;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: normal;
+        }
+
+        .takeaway p {
+            color: #bbb;
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+
+        .takeaway ul {
+            color: #bbb;
+            line-height: 1.7;
+            margin-left: 20px;
+        }
+
+        .takeaway li {
+            margin-bottom: 8px;
+        }
+
+        /* Lily pad animation */
+        .lilypad-outer {
+            position: relative;
+            width: 360px;
+            height: 340px;
+            margin: 20px auto;
+            background: #5a4a3a;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lilypad-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            background: #1a4a6a;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        /* Penny visualization */
+        .penny-canvas-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .penny-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .penny-day-display {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 18px;
+            color: #7faadb;
+        }
+
+        .penny-values {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 15px;
+        }
+
+        .penny-value {
+            text-align: center;
+        }
+
+        .penny-value-label {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .penny-value-amount {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .penny-value-amount.million {
+            color: #7faadb;
+        }
+
+        .penny-value-amount.penny {
+            color: #70e070;
+        }
+
+        .lilypad {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #3a8a3a;
+            border-radius: 50%;
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .day-display {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 18px;
+            color: #7faadb;
+        }
+
+        .lilypad-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Compounding</h1>
+        <p class="subtitle">Why exponential growth breaks our intuition</p>
+        
+        <p class="explanation">
+            Our brains evolved to think linearly. Add a little, get a little more. But when 
+            something grows by a percentage — multiplying rather than adding — the results 
+            quickly exceed anything our intuition can grasp.
+        </p>
+
+        <!-- Puzzle 1: Lily Pad -->
+        <div class="puzzle" id="puzzle1">
+            <h2>Puzzle 1: The Lily Pad</h2>
+            <p class="puzzle-question">
+                A lily pad in a pond doubles in size every day. On day 30, it completely 
+                covers the pond. On what day did it cover <strong>half</strong> the pond?
+            </p>
+            <div class="puzzle-options">
+                <button class="puzzle-option" data-answer="10">Day 10</button>
+                <button class="puzzle-option" data-answer="15">Day 15</button>
+                <button class="puzzle-option" data-answer="20">Day 20</button>
+                <button class="puzzle-option" data-answer="29" data-correct="true">Day 29</button>
+            </div>
+            <div class="puzzle-result" id="result1">
+                <h3 id="result1-title"></h3>
+                <p id="result1-text"></p>
+            </div>
+            <div class="puzzle-visual" id="visual1">
+                <div class="lilypad-outer">
+                    <div class="lilypad-container">
+                        <div class="lilypad" id="lilypad"></div>
+                    </div>
+                </div>
+                <div class="day-display">Day <span id="lilypad-day">1</span> — <span id="lilypad-percent">0.0000001%</span> covered</div>
+                <div class="lilypad-controls">
+                    <button class="secondary" id="lilypad-reset">Reset</button>
+                    <button class="primary" id="lilypad-play">Play</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Puzzle 2: Penny Doubled -->
+        <div class="puzzle" id="puzzle2">
+            <h2>Puzzle 2: The Penny</h2>
+            <p class="puzzle-question">
+                Would you rather have <strong>$1,000,000</strong> today, or <strong>1 penny</strong> 
+                that doubles every day for 30 days?
+            </p>
+            <div class="puzzle-options">
+                <button class="puzzle-option" data-answer="million">$1,000,000</button>
+                <button class="puzzle-option" data-answer="penny" data-correct="true">The doubling penny</button>
+            </div>
+            <div class="puzzle-result" id="result2">
+                <h3 id="result2-title"></h3>
+                <p id="result2-text"></p>
+            </div>
+            <div class="puzzle-visual" id="visual2">
+                <div class="penny-canvas-container">
+                    <canvas id="pennyChart" width="700" height="300"></canvas>
+                </div>
+                <div class="penny-day-display">Day <span id="penny-day">1</span></div>
+                <div class="penny-values">
+                    <div class="penny-value">
+                        <div class="penny-value-label">$1 Million</div>
+                        <div class="penny-value-amount million">$1,000,000</div>
+                    </div>
+                    <div class="penny-value">
+                        <div class="penny-value-label">Doubling Penny</div>
+                        <div class="penny-value-amount penny" id="penny-amount">$0.01</div>
+                    </div>
+                </div>
+                <div class="penny-controls">
+                    <button class="secondary" id="penny-reset">Reset</button>
+                    <button class="primary" id="penny-play">Play</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Visualization -->
+        <div class="visualization">
+            <h2>Watch Them Diverge</h2>
+            <p class="explanation" style="margin-bottom: 25px;">
+                Linear growth adds a fixed amount each period. Exponential growth multiplies 
+                by a fixed percentage. Start them equal and watch what happens.
+            </p>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label>Linear Start: <span class="control-value" id="linearStartValue">100</span></label>
+                    <input type="range" id="linearStart" min="10" max="1000" step="10" value="100">
+                </div>
+                <div class="control-group">
+                    <label>Linear: +<span class="control-value" id="linearValue">10</span>/period</label>
+                    <input type="range" id="linearRate" min="1" max="50" step="1" value="10">
+                </div>
+                <div class="control-group">
+                    <label>Exponential Start: <span class="control-value" id="expStartValue">100</span></label>
+                    <input type="range" id="expStart" min="10" max="1000" step="10" value="100">
+                </div>
+                <div class="control-group">
+                    <label>Exponential: +<span class="control-value" id="expValue">10</span>%/period</label>
+                    <input type="range" id="expRate" min="1" max="25" step="1" value="10">
+                </div>
+                <div class="control-group">
+                    <label>Periods: <span class="control-value" id="periodsValue">30</span></label>
+                    <input type="range" id="periods" min="10" max="50" step="1" value="30">
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="chart" width="800" height="400"></canvas>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color linear"></div>
+                    <span>Linear Growth</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color exponential"></div>
+                    <span>Exponential Growth</span>
+                </div>
+            </div>
+
+            <div class="viz-controls" style="margin-top: 20px;">
+                <button class="secondary" id="chart-reset">Reset</button>
+                <button class="primary" id="chart-play">Play</button>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-label">Linear Final</div>
+                    <div class="stat-value linear" id="linearFinal">400</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Exponential Final</div>
+                    <div class="stat-value exponential" id="expFinal">1,745</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Difference</div>
+                    <div class="stat-value exponential" id="difference">4.4x</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Takeaway -->
+        <div class="takeaway">
+            <h2>Why This Matters</h2>
+            <p>
+                Compounding isn't just about money. It's a fundamental principle that appears 
+                everywhere:
+            </p>
+            <ul>
+                <li><strong>Knowledge:</strong> Each discovery enables the next. Science accelerates 
+                    because we build on what came before.</li>
+                <li><strong>Technology:</strong> Moore's Law — computing power doubling roughly every 
+                    two years — has held for decades. Small percentages, staggering results.</li>
+                <li><strong>AI Progress:</strong> Ray Kurzweil's "Law of Accelerating Returns" suggests 
+                    technological change itself is exponential. This is why AI timelines are so hard 
+                    to predict — our linear intuition fails us.</li>
+                <li><strong>Habits:</strong> Small improvements (1% better each day) compound into 
+                    transformative change. Small degradations compound into decay.</li>
+            </ul>
+            <p style="margin-top: 20px; color: #7faadb;">
+                The lesson: when something grows by multiplication rather than addition, trust the 
+                math, not your intuition.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Puzzle 1: Lily Pad
+        const puzzle1Options = document.querySelectorAll('#puzzle1 .puzzle-option');
+        let puzzle1Answered = false;
+
+        puzzle1Options.forEach(option => {
+            option.addEventListener('click', () => {
+                if (puzzle1Answered) return;
+                puzzle1Answered = true;
+
+                const isCorrect = option.dataset.correct === 'true';
+                
+                puzzle1Options.forEach(opt => {
+                    opt.disabled = true;
+                    if (opt.dataset.correct === 'true') {
+                        opt.classList.add('correct');
+                    } else if (opt === option && !isCorrect) {
+                        opt.classList.add('incorrect');
+                    }
+                });
+
+                const result = document.getElementById('result1');
+                const title = document.getElementById('result1-title');
+                const text = document.getElementById('result1-text');
+
+                if (isCorrect) {
+                    result.className = 'puzzle-result show correct';
+                    title.textContent = 'Correct!';
+                } else {
+                    result.className = 'puzzle-result show incorrect';
+                    title.textContent = 'Not quite.';
+                }
+                
+                text.innerHTML = `The answer is <strong>Day 29</strong>. If the lily pad doubles every day and 
+                    covers the whole pond on Day 30, then on Day 29 it covered exactly half. The jump from 
+                    50% to 100% happens in a single day — the same as every previous doubling. That's the 
+                    nature of exponential growth: most of the action happens at the very end.`;
+
+                document.getElementById('visual1').classList.add('show');
+            });
+        });
+
+        // Lily pad animation
+        let lilypadDay = 1;
+        let lilypadPlaying = false;
+        let lilypadInterval;
+
+        function updateLilypad() {
+            const pad = document.getElementById('lilypad');
+            const daySpan = document.getElementById('lilypad-day');
+            const percentSpan = document.getElementById('lilypad-percent');
+
+            // Size is 2^(day-30) of full size (300px)
+            const fraction = Math.pow(2, lilypadDay - 30);
+            const size = Math.max(2, 300 * Math.sqrt(fraction));
+            
+            pad.style.width = size + 'px';
+            pad.style.height = size + 'px';
+
+            daySpan.textContent = lilypadDay;
+            
+            const percent = fraction * 100;
+            if (percent < 0.01) {
+                percentSpan.textContent = '< 0.01%';
+            } else if (percent < 1) {
+                percentSpan.textContent = percent.toFixed(2) + '%';
+            } else {
+                percentSpan.textContent = percent.toFixed(0) + '%';
+            }
+        }
+
+        document.getElementById('lilypad-play').addEventListener('click', () => {
+            if (lilypadPlaying) {
+                clearInterval(lilypadInterval);
+                lilypadPlaying = false;
+                document.getElementById('lilypad-play').textContent = 'Play';
+            } else {
+                lilypadPlaying = true;
+                document.getElementById('lilypad-play').textContent = 'Pause';
+                lilypadInterval = setInterval(() => {
+                    if (lilypadDay >= 30) {
+                        clearInterval(lilypadInterval);
+                        lilypadPlaying = false;
+                        document.getElementById('lilypad-play').textContent = 'Play';
+                        return;
+                    }
+                    lilypadDay++;
+                    updateLilypad();
+                }, 300);
+            }
+        });
+
+        document.getElementById('lilypad-reset').addEventListener('click', () => {
+            clearInterval(lilypadInterval);
+            lilypadPlaying = false;
+            lilypadDay = 1;
+            document.getElementById('lilypad-play').textContent = 'Play';
+            updateLilypad();
+        });
+
+        updateLilypad();
+
+        // Puzzle 2: Penny
+        const puzzle2Options = document.querySelectorAll('#puzzle2 .puzzle-option');
+        let puzzle2Answered = false;
+
+        puzzle2Options.forEach(option => {
+            option.addEventListener('click', () => {
+                if (puzzle2Answered) return;
+                puzzle2Answered = true;
+
+                const isCorrect = option.dataset.correct === 'true';
+                
+                puzzle2Options.forEach(opt => {
+                    opt.disabled = true;
+                    if (opt.dataset.correct === 'true') {
+                        opt.classList.add('correct');
+                    } else if (opt === option && !isCorrect) {
+                        opt.classList.add('incorrect');
+                    }
+                });
+
+                const result = document.getElementById('result2');
+                const title = document.getElementById('result2-title');
+                const text = document.getElementById('result2-text');
+
+                if (isCorrect) {
+                    result.className = 'puzzle-result show correct';
+                    title.textContent = 'Correct!';
+                } else {
+                    result.className = 'puzzle-result show incorrect';
+                    title.textContent = 'The million looks tempting, but...';
+                }
+                
+                text.innerHTML = `The doubling penny is worth <strong>$5,368,709.12</strong> after 30 days — 
+                    more than 5x the million dollars. Day 1: $0.01. Day 10: $5.12. Day 20: $5,242.88. 
+                    Day 30: over $5 million. Almost all the value accumulates in the final days.`;
+
+                document.getElementById('visual2').classList.add('show');
+            });
+        });
+
+        // Penny chart animation
+        let pennyDay = 1;
+        let pennyPlaying = false;
+        let pennyInterval;
+        const pennyCanvas = document.getElementById('pennyChart');
+        const pennyCtx = pennyCanvas.getContext('2d');
+
+        function formatPennyMoney(amount) {
+            if (amount >= 1000000) {
+                return '$' + (amount / 1000000).toFixed(2) + 'M';
+            } else if (amount >= 1000) {
+                return '$' + (amount / 1000).toFixed(2) + 'K';
+            } else if (amount >= 1) {
+                return '$' + amount.toFixed(2);
+            }
+            return '$' + amount.toFixed(2);
+        }
+
+        function drawPennyChart() {
+            const million = 1000000;
+            const maxValue = 6000000; // 6 million for clean axis
+            const padding = { top: 30, right: 30, bottom: 40, left: 70 };
+            const chartWidth = pennyCanvas.width - padding.left - padding.right;
+            const chartHeight = pennyCanvas.height - padding.top - padding.bottom;
+
+            // Clear
+            pennyCtx.clearRect(0, 0, pennyCanvas.width, pennyCanvas.height);
+
+            // Background
+            pennyCtx.fillStyle = '#0d1421';
+            pennyCtx.fillRect(0, 0, pennyCanvas.width, pennyCanvas.height);
+
+            // Grid lines - 0 to 6 million in steps of 1
+            pennyCtx.strokeStyle = '#2a3a5e';
+            pennyCtx.lineWidth = 1;
+            for (let i = 0; i <= 6; i++) {
+                const y = padding.top + (chartHeight * (6 - i) / 6);
+                pennyCtx.beginPath();
+                pennyCtx.moveTo(padding.left, y);
+                pennyCtx.lineTo(pennyCanvas.width - padding.right, y);
+                pennyCtx.stroke();
+
+                pennyCtx.fillStyle = '#aaa';
+                pennyCtx.font = '13px Georgia';
+                pennyCtx.textAlign = 'right';
+                pennyCtx.fillText('$' + i + 'M', padding.left - 10, y + 4);
+            }
+
+            // X-axis labels
+            pennyCtx.fillStyle = '#aaa';
+            pennyCtx.font = '13px Georgia';
+            pennyCtx.textAlign = 'center';
+            for (let i = 0; i <= 30; i += 5) {
+                const x = padding.left + (chartWidth * i / 30);
+                pennyCtx.fillText(i.toString(), x, pennyCanvas.height - padding.bottom + 20);
+            }
+            pennyCtx.fillText('Days', pennyCanvas.width / 2, pennyCanvas.height - 5);
+
+            // Draw $1M line (flat)
+            const millionY = padding.top + chartHeight * (1 - million / maxValue);
+            pennyCtx.strokeStyle = '#7faadb';
+            pennyCtx.lineWidth = 3;
+            pennyCtx.setLineDash([10, 5]);
+            pennyCtx.beginPath();
+            pennyCtx.moveTo(padding.left, millionY);
+            pennyCtx.lineTo(padding.left + (chartWidth * pennyDay / 30), millionY);
+            pennyCtx.stroke();
+            pennyCtx.setLineDash([]);
+
+            // Label for million
+            if (pennyDay >= 5) {
+                pennyCtx.fillStyle = '#7faadb';
+                pennyCtx.font = '14px Georgia';
+                pennyCtx.textAlign = 'left';
+                pennyCtx.fillText('$1 Million', padding.left + 10, millionY - 10);
+            }
+
+            // Draw penny growth
+            pennyCtx.strokeStyle = '#70e070';
+            pennyCtx.lineWidth = 3;
+            pennyCtx.beginPath();
+            for (let d = 1; d <= pennyDay; d++) {
+                const pennyValue = 0.01 * Math.pow(2, d - 1);
+                const x = padding.left + (chartWidth * d / 30);
+                const y = padding.top + chartHeight * (1 - Math.min(pennyValue, maxValue) / maxValue);
+                if (d === 1) pennyCtx.moveTo(x, y);
+                else pennyCtx.lineTo(x, y);
+            }
+            pennyCtx.stroke();
+
+            // Current penny value
+            const currentPenny = 0.01 * Math.pow(2, pennyDay - 1);
+            document.getElementById('penny-day').textContent = pennyDay;
+            document.getElementById('penny-amount').textContent = formatPennyMoney(currentPenny);
+
+            // Highlight when penny crosses million
+            if (currentPenny >= million) {
+                document.getElementById('penny-amount').style.color = '#90ff90';
+            } else {
+                document.getElementById('penny-amount').style.color = '#70e070';
+            }
+        }
+
+        document.getElementById('penny-play').addEventListener('click', () => {
+            if (pennyPlaying) {
+                clearInterval(pennyInterval);
+                pennyPlaying = false;
+                document.getElementById('penny-play').textContent = 'Play';
+            } else {
+                pennyPlaying = true;
+                document.getElementById('penny-play').textContent = 'Pause';
+                pennyInterval = setInterval(() => {
+                    if (pennyDay >= 30) {
+                        clearInterval(pennyInterval);
+                        pennyPlaying = false;
+                        document.getElementById('penny-play').textContent = 'Play';
+                        return;
+                    }
+                    pennyDay++;
+                    drawPennyChart();
+                }, 300);
+            }
+        });
+
+        document.getElementById('penny-reset').addEventListener('click', () => {
+            clearInterval(pennyInterval);
+            pennyPlaying = false;
+            pennyDay = 1;
+            document.getElementById('penny-play').textContent = 'Play';
+            drawPennyChart();
+        });
+
+        // Initialize penny chart when visible
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.target.classList.contains('show')) {
+                    drawPennyChart();
+                }
+            });
+        });
+        observer.observe(document.getElementById('visual2'), { attributes: true, attributeFilter: ['class'] });
+
+        // Chart visualization
+        const canvas = document.getElementById('chart');
+        const ctx = canvas.getContext('2d');
+
+        function formatAmount(amount) {
+            if (amount >= 1000000) {
+                return (amount / 1000000).toFixed(1) + 'M';
+            } else if (amount >= 1000) {
+                return (amount / 1000).toFixed(1) + 'K';
+            }
+            return amount.toFixed(0);
+        }
+
+        function drawChart() {
+            const linearStart = parseFloat(document.getElementById('linearStart').value);
+            const expStart = parseFloat(document.getElementById('expStart').value);
+            const linearRate = parseFloat(document.getElementById('linearRate').value);
+            const expRate = parseFloat(document.getElementById('expRate').value) / 100;
+            const periods = parseInt(document.getElementById('periods').value);
+
+            // Calculate values
+            const linearValues = [linearStart];
+            const expValues = [expStart];
+
+            for (let i = 1; i <= periods; i++) {
+                linearValues.push(linearStart + linearRate * i);
+                expValues.push(expStart * Math.pow(1 + expRate, i));
+            }
+
+            const maxValue = Math.max(...linearValues, ...expValues);
+            const minValue = 0;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const padding = { top: 30, right: 30, bottom: 40, left: 70 };
+            const chartWidth = canvas.width - padding.left - padding.right;
+            const chartHeight = canvas.height - padding.top - padding.bottom;
+
+            // Draw grid
+            ctx.strokeStyle = '#2a3a5e';
+            ctx.lineWidth = 1;
+
+            for (let i = 0; i <= 5; i++) {
+                const y = padding.top + (chartHeight * i / 5);
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(canvas.width - padding.right, y);
+                ctx.stroke();
+
+                const value = maxValue - (maxValue - minValue) * i / 5;
+                ctx.fillStyle = '#aaa';
+                ctx.font = '13px Georgia';
+                ctx.textAlign = 'right';
+                ctx.fillText(formatAmount(value), padding.left - 10, y + 4);
+            }
+
+            // X-axis labels
+            ctx.fillStyle = '#aaa';
+            ctx.font = '13px Georgia';
+            ctx.textAlign = 'center';
+            for (let i = 0; i <= periods; i += Math.ceil(periods / 10)) {
+                const x = padding.left + (chartWidth * i / periods);
+                ctx.fillText(i.toString(), x, canvas.height - padding.bottom + 20);
+            }
+            ctx.fillText('Periods', canvas.width / 2, canvas.height - 5);
+
+            // Draw linear line up to current period
+            ctx.strokeStyle = '#7faadb';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let i = 0; i <= currentPeriod; i++) {
+                const x = padding.left + (chartWidth * i / periods);
+                const y = padding.top + chartHeight * (1 - (linearValues[i] - minValue) / (maxValue - minValue));
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Draw exponential line up to current period
+            ctx.strokeStyle = '#70e070';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let i = 0; i <= currentPeriod; i++) {
+                const x = padding.left + (chartWidth * i / periods);
+                const y = padding.top + chartHeight * (1 - (expValues[i] - minValue) / (maxValue - minValue));
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Update stats based on current period
+            const linearCurrent = linearValues[currentPeriod];
+            const expCurrent = expValues[currentPeriod];
+            document.getElementById('linearFinal').textContent = formatAmount(linearCurrent);
+            document.getElementById('expFinal').textContent = formatAmount(expCurrent);
+            document.getElementById('difference').textContent = (expCurrent / linearCurrent).toFixed(1) + 'x';
+        }
+
+        // Chart animation state
+        let chartPeriod = 1;
+        let chartPlaying = false;
+        let chartInterval;
+        let currentPeriod = 1;
+
+        function animateChart() {
+            const periods = parseInt(document.getElementById('periods').value);
+            currentPeriod = chartPeriod;
+            drawChart();
+        }
+
+        document.getElementById('chart-play').addEventListener('click', () => {
+            const periods = parseInt(document.getElementById('periods').value);
+            if (chartPlaying) {
+                clearInterval(chartInterval);
+                chartPlaying = false;
+                document.getElementById('chart-play').textContent = 'Play';
+            } else {
+                chartPlaying = true;
+                document.getElementById('chart-play').textContent = 'Pause';
+                chartInterval = setInterval(() => {
+                    if (chartPeriod >= periods) {
+                        clearInterval(chartInterval);
+                        chartPlaying = false;
+                        document.getElementById('chart-play').textContent = 'Play';
+                        return;
+                    }
+                    chartPeriod++;
+                    animateChart();
+                }, 150);
+            }
+        });
+
+        document.getElementById('chart-reset').addEventListener('click', () => {
+            clearInterval(chartInterval);
+            chartPlaying = false;
+            chartPeriod = 1;
+            currentPeriod = 1;
+            document.getElementById('chart-play').textContent = 'Play';
+            animateChart();
+        });
+
+        // Slider event listeners
+        const sliders = ['linearStart', 'linearRate', 'expStart', 'expRate', 'periods'];
+        const valueDisplays = ['linearStartValue', 'linearValue', 'expStartValue', 'expValue', 'periodsValue'];
+
+        sliders.forEach((sliderId, index) => {
+            const slider = document.getElementById(sliderId);
+            const display = document.getElementById(valueDisplays[index]);
+            
+            slider.addEventListener('input', () => {
+                display.textContent = slider.value;
+                // Reset animation when parameters change
+                clearInterval(chartInterval);
+                chartPlaying = false;
+                chartPeriod = 1;
+                currentPeriod = 1;
+                document.getElementById('chart-play').textContent = 'Play';
+                animateChart();
+            });
+        });
+
+        // Initial draw
+        currentPeriod = 1;
+        animateChart();
+    </script>
+</body>
+</html>

@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nailboard Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .main-container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .canvas-container {
+            position: relative;
+        }
+
+        .control-panel {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-width: 180px;
+        }
+
+        .control-panel h3 {
+            color: #4a7ab0;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        #dropButton {
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        #dropButton:hover {
+            background: #45a049;
+        }
+
+        #dropButton:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .slider-container label {
+            color: #7faadb;
+            font-size: 14px;
+        }
+
+        .slider-container input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .slider-value {
+            color: #4CAF50;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        canvas {
+            display: block;
+            background: #16213e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .stats {
+            color: #7faadb;
+            font-size: 14px;
+        }
+
+        .stats div {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="canvas-container">
+            <canvas id="canvas" width="600" height="800"></canvas>
+        </div>
+        <div class="control-panel">
+            <h3>Controls</h3>
+            <button id="dropButton">Drop Balls</button>
+            <div class="slider-container">
+                <label>Number of Balls: <span id="ballSliderValue" class="slider-value">300</span></label>
+                <input type="range" id="ballSlider" min="1" max="400" value="300">
+            </div>
+            <h3>Physics</h3>
+            <div class="slider-container">
+                <label>Gravity: <span id="gravityValue" class="slider-value">0.35</span></label>
+                <input type="range" id="gravitySlider" min="0.01" max="0.5" step="0.01" value="0.35">
+            </div>
+            <div class="slider-container">
+                <label>Friction: <span id="frictionValue" class="slider-value">0.80</span></label>
+                <input type="range" id="frictionSlider" min="0" max="1" step="0.05" value="0.8">
+            </div>
+            <div class="slider-container">
+                <label>Bounce: <span id="bounceValue" class="slider-value">0.8</span></label>
+                <input type="range" id="bounceSlider" min="0.1" max="0.9" step="0.05" value="0.8">
+            </div>
+            <div class="stats">
+                <h3>Statistics</h3>
+                <div>Balls: <span id="ballCount">0</span></div>
+                <div>In bins: <span id="binCount">0</span></div>
+                <div>Beyond bins: <span id="beyondCount">0</span></div>
+                <div style="margin-top: 10px; border-top: 1px solid #4a7ab0; padding-top: 10px;">
+                    <div>Left (1-5): <span id="leftPct">0%</span></div>
+                    <div>Center (6-8): <span id="centerPct">0%</span></div>
+                    <div>Right (9-13): <span id="rightPct">0%</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ======================
+        // Minimalist 2D Physics Engine
+        // ======================
+        const Physics = {
+            // Configuration
+            gravity: 0.35,
+            friction: 0.92,  // Internal value: 1.0 = no friction, 0.9 = max friction (slider 0.8 -> 0.92)
+            bounce: 0.8,
+
+            // Vector operations
+            distance(x1, y1, x2, y2) {
+                const dx = x1 - x2;
+                const dy = y1 - y2;
+                return Math.sqrt(dx * dx + dy * dy);
+            },
+
+            normalize(dx, dy) {
+                const len = Math.sqrt(dx * dx + dy * dy);
+                return len > 0 ? { x: dx / len, y: dy / len } : { x: 0, y: 0 };
+            },
+
+            dot(vx, vy, nx, ny) {
+                return vx * nx + vy * ny;
+            },
+
+            // Apply gravity to a ball
+            applyGravity(ball) {
+                ball.vy += this.gravity;
+            },
+
+            // Apply friction to a ball
+            applyFriction(ball) {
+                ball.vx *= this.friction;
+                ball.vy *= this.friction;
+            },
+
+            // Integrate position from velocity
+            integrate(ball) {
+                ball.x += ball.vx;
+                ball.y += ball.vy;
+            },
+
+            // Constrain ball within rectangular bounds, returns which sides were hit
+            constrainToRect(ball, radius, left, top, right, bottom) {
+                const hits = { left: false, right: false, top: false, bottom: false };
+
+                if (ball.x - radius < left) {
+                    ball.x = left + radius;
+                    ball.vx *= -this.bounce;
+                    hits.left = true;
+                }
+                if (ball.x + radius > right) {
+                    ball.x = right - radius;
+                    ball.vx *= -this.bounce;
+                    hits.right = true;
+                }
+                if (ball.y - radius < top) {
+                    ball.y = top + radius;
+                    ball.vy *= -this.bounce;
+                    hits.top = true;
+                }
+                if (ball.y + radius > bottom) {
+                    ball.y = bottom - radius;
+                    ball.vy *= -this.bounce;
+                    hits.bottom = true;
+                }
+
+                return hits;
+            },
+
+            // Resolve collision between ball and static circle (nail)
+            collideWithCircle(ball, ballRadius, cx, cy, circleRadius, options = {}) {
+                const dx = ball.x - cx;
+                const dy = ball.y - cy;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const minDist = ballRadius + circleRadius;
+
+                if (dist < minDist && dist > 0) {
+                    const n = this.normalize(dx, dy);
+
+                    // Push ball out
+                    ball.x = cx + n.x * minDist;
+                    ball.y = cy + n.y * minDist;
+
+                    // Reflect velocity
+                    const dot = this.dot(ball.vx, ball.vy, n.x, n.y);
+                    ball.vx -= 2 * dot * n.x;
+                    ball.vy -= 2 * dot * n.y;
+                    ball.vx *= this.bounce;
+                    ball.vy *= this.bounce;
+
+                    // Optional random nudge
+                    if (options.randomNudge) {
+                        ball.vx += (Math.random() < 0.5 ? -1 : 1) * options.randomNudge;
+                    }
+
+                    return true;
+                }
+                return false;
+            },
+
+            // Resolve collision between two balls
+            collideBalls(ball1, ball2, radius, options = {}) {
+                const dx = ball1.x - ball2.x;
+                const dy = ball1.y - ball2.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const minDist = radius * 2;
+
+                if (dist < minDist && dist > 0) {
+                    const n = this.normalize(dx, dy);
+                    const overlap = minDist - dist;
+
+                    if (options.ball2Static) {
+                        // Ball2 is static - only move ball1
+                        ball1.x += n.x * overlap;
+                        ball1.y += n.y * overlap;
+
+                        const dot = this.dot(ball1.vx, ball1.vy, n.x, n.y);
+                        ball1.vx -= dot * n.x * 1.5;
+                        ball1.vy -= dot * n.y * 1.5;
+                        ball1.vx *= this.bounce;
+                        ball1.vy *= this.bounce;
+                    } else {
+                        // Both balls movable - share separation
+                        ball1.x += n.x * overlap * 0.5;
+                        ball1.y += n.y * overlap * 0.5;
+                        ball2.x -= n.x * overlap * 0.5;
+                        ball2.y -= n.y * overlap * 0.5;
+
+                        // Velocity exchange
+                        const dvx = ball1.vx - ball2.vx;
+                        const dvy = ball1.vy - ball2.vy;
+                        const dot = this.dot(dvx, dvy, n.x, n.y);
+
+                        if (dot > 0 || !options.onlyApproaching) {
+                            ball1.vx -= dot * n.x * 0.5;
+                            ball1.vy -= dot * n.y * 0.5;
+                            ball2.vx += dot * n.x * 0.5;
+                            ball2.vy += dot * n.y * 0.5;
+                        }
+                    }
+
+                    return true;
+                }
+                return false;
+            },
+
+            // Check if ball is nearly stopped
+            isSettled(ball, threshold = 0.1) {
+                return Math.abs(ball.vx) < threshold && Math.abs(ball.vy) < threshold;
+            },
+
+            // Stop ball completely
+            stop(ball) {
+                ball.vx = 0;
+                ball.vy = 0;
+            },
+
+            // Check if ball1 has a supporting ball below it
+            hasSupport(ball, allBalls, radius, margin = 0.2) {
+                for (const other of allBalls) {
+                    if (other === ball) continue;
+                    const dist = this.distance(ball.x, ball.y, other.x, other.y);
+                    const dy = ball.y - other.y;
+                    if (dist < radius * 2 * (1 + margin) && dy < 0) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        };
+
+        // ======================
+        // Simulation Setup
+        // ======================
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const dropButton = document.getElementById('dropButton');
+        const ballCountSpan = document.getElementById('ballCount');
+        const binCountSpan = document.getElementById('binCount');
+        const beyondCountSpan = document.getElementById('beyondCount');
+        const leftPctSpan = document.getElementById('leftPct');
+        const centerPctSpan = document.getElementById('centerPct');
+        const rightPctSpan = document.getElementById('rightPct');
+        const ballSlider = document.getElementById('ballSlider');
+        const ballSliderValue = document.getElementById('ballSliderValue');
+        const gravitySlider = document.getElementById('gravitySlider');
+        const gravityValue = document.getElementById('gravityValue');
+        const frictionSlider = document.getElementById('frictionSlider');
+        const frictionValue = document.getElementById('frictionValue');
+        const bounceSlider = document.getElementById('bounceSlider');
+        const bounceValue = document.getElementById('bounceValue');
+
+        // Configuration
+        const NAIL_RADIUS = 8;
+        const BALL_RADIUS = 5;
+        const NUM_ROWS = 10;
+        const NUM_BINS = 13;  // 11 center bins + 2 outer bins
+
+        // Layout dimensions
+        const NAILBOARD_WIDTH = 500;
+        const NAILBOARD_X = (canvas.width - NAILBOARD_WIDTH) / 2;
+
+        const RESERVOIR_TOP = 20;
+        const RESERVOIR_HEIGHT = 100;
+        const RESERVOIR_WIDTH = NAILBOARD_WIDTH;
+        const RESERVOIR_X = NAILBOARD_X;
+        const SLANT_HEIGHT = 40;
+
+        const NAILBOARD_TOP = RESERVOIR_TOP + RESERVOIR_HEIGHT + 30;
+        const NAILBOARD_HEIGHT = 400;
+
+        // Bin dimensions - bins extend beyond nailboard to catch edge balls
+        const BIN_WIDTH = NAILBOARD_WIDTH / 11;  // Keep original bin width
+        const BIN_AREA_X = NAILBOARD_X - BIN_WIDTH;  // Start one bin-width to the left
+        const BIN_TOP = NAILBOARD_TOP + NAILBOARD_HEIGHT + 10;
+        const BIN_HEIGHT = 200;
+
+        // Door configuration
+        const DOOR_WIDTH = 8;
+        const CENTER_X = canvas.width / 2;
+        const DOOR_LEFT = CENTER_X - DOOR_WIDTH;
+        const DOOR_RIGHT = CENTER_X + DOOR_WIDTH;
+        const RESERVOIR_BOTTOM = RESERVOIR_TOP + RESERVOIR_HEIGHT;
+
+        // State
+        let balls = [];
+        let nails = [];
+        let doorsOpen = false;
+        let doorAngle = 0;
+        const DOOR_MAX_ANGLE = Math.PI / 2;
+        let numBalls = 300;
+        let binCounts = new Array(NUM_BINS).fill(0);  // Track balls per bin
+
+        // ======================
+        // Initialization
+        // ======================
+        function initBalls() {
+            balls = [];
+            const spacing = BALL_RADIUS * 2.2;
+            const cols = Math.floor((RESERVOIR_WIDTH - 20) / spacing);
+
+            for (let i = 0; i < numBalls; i++) {
+                const col = i % cols;
+                const row = Math.floor(i / cols);
+                const x = RESERVOIR_X + 10 + BALL_RADIUS + col * spacing;
+                let y = RESERVOIR_TOP + 10 + BALL_RADIUS + row * spacing;
+
+                // Ensure ball stays above the slant
+                const slantY = getSlantY(x);
+                if (y + BALL_RADIUS > slantY) {
+                    y = slantY - BALL_RADIUS;
+                }
+
+                balls.push({
+                    x: x,
+                    y: y,
+                    vx: 0,
+                    vy: 0,
+                    inReservoir: true,
+                    resting: false,
+                    inBin: false
+                });
+            }
+        }
+
+        function initNails() {
+            nails = [];
+            const rowSpacing = NAILBOARD_HEIGHT / (NUM_ROWS + 1);
+
+            for (let row = 0; row < NUM_ROWS; row++) {
+                const y = NAILBOARD_TOP + rowSpacing * (row + 1);
+                const hasCenter = row % 2 === 0;
+                const numNails = hasCenter ? 11 : 10;
+                const offset = hasCenter ? BIN_WIDTH / 2 : BIN_WIDTH;
+
+                for (let i = 0; i < numNails; i++) {
+                    const x = NAILBOARD_X + offset + i * BIN_WIDTH;
+                    if (x > NAILBOARD_X + 5 && x < NAILBOARD_X + NAILBOARD_WIDTH - 5) {
+                        nails.push({ x, y });
+                    }
+                }
+            }
+        }
+
+        // ======================
+        // Geometry Helpers
+        // ======================
+        function getBinIndex(x) {
+            const binIdx = Math.floor((x - BIN_AREA_X) / BIN_WIDTH);
+            // Return -1 if outside bin area (don't clamp)
+            if (binIdx < 0 || binIdx >= NUM_BINS) return -1;
+            return binIdx;
+        }
+
+        function getSlantY(x) {
+            const distFromCenter = Math.abs(x - CENTER_X);
+            const maxDist = RESERVOIR_WIDTH / 2;
+            const ratio = distFromCenter / maxDist;
+            return RESERVOIR_BOTTOM - SLANT_HEIGHT * ratio;
+        }
+
+        // ======================
+        // Drawing Functions
+        // ======================
+        function drawReservoir() {
+            ctx.strokeStyle = '#4a7ab0';
+            ctx.lineWidth = 3;
+
+            const edgeY = RESERVOIR_BOTTOM - SLANT_HEIGHT;
+
+            ctx.beginPath();
+            ctx.moveTo(RESERVOIR_X, RESERVOIR_TOP);
+            ctx.lineTo(RESERVOIR_X, edgeY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(RESERVOIR_X + RESERVOIR_WIDTH, RESERVOIR_TOP);
+            ctx.lineTo(RESERVOIR_X + RESERVOIR_WIDTH, edgeY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(RESERVOIR_X, RESERVOIR_TOP);
+            ctx.lineTo(RESERVOIR_X + RESERVOIR_WIDTH, RESERVOIR_TOP);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(RESERVOIR_X, edgeY);
+            ctx.lineTo(DOOR_LEFT, RESERVOIR_BOTTOM);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(RESERVOIR_X + RESERVOIR_WIDTH, edgeY);
+            ctx.lineTo(DOOR_RIGHT, RESERVOIR_BOTTOM);
+            ctx.stroke();
+
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#6a9ad0';
+
+            const doorLen = DOOR_WIDTH;
+            ctx.beginPath();
+            ctx.moveTo(DOOR_LEFT, RESERVOIR_BOTTOM);
+            ctx.lineTo(DOOR_LEFT + Math.cos(doorAngle) * doorLen, RESERVOIR_BOTTOM + Math.sin(doorAngle) * doorLen);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(DOOR_RIGHT, RESERVOIR_BOTTOM);
+            ctx.lineTo(DOOR_RIGHT - Math.cos(doorAngle) * doorLen, RESERVOIR_BOTTOM + Math.sin(doorAngle) * doorLen);
+            ctx.stroke();
+
+            ctx.fillStyle = '#8ab4e8';
+            ctx.beginPath();
+            ctx.arc(DOOR_LEFT, RESERVOIR_BOTTOM, 4, 0, Math.PI * 2);
+            ctx.arc(DOOR_RIGHT, RESERVOIR_BOTTOM, 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawNails() {
+            ctx.fillStyle = '#c0c0c0';
+            for (const nail of nails) {
+                ctx.beginPath();
+                ctx.arc(nail.x, nail.y, NAIL_RADIUS, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function drawBins() {
+            ctx.strokeStyle = '#4a7ab0';
+            ctx.lineWidth = 2;
+
+            for (let i = 0; i <= NUM_BINS; i++) {
+                ctx.beginPath();
+                ctx.moveTo(BIN_AREA_X + i * BIN_WIDTH, BIN_TOP);
+                ctx.lineTo(BIN_AREA_X + i * BIN_WIDTH, BIN_TOP + BIN_HEIGHT);
+                ctx.stroke();
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(BIN_AREA_X, BIN_TOP + BIN_HEIGHT);
+            ctx.lineTo(BIN_AREA_X + NUM_BINS * BIN_WIDTH, BIN_TOP + BIN_HEIGHT);
+            ctx.stroke();
+        }
+
+        function drawBalls() {
+            for (const ball of balls) {
+                const gradient = ctx.createRadialGradient(
+                    ball.x - 2, ball.y - 2, 0,
+                    ball.x, ball.y, BALL_RADIUS
+                );
+                gradient.addColorStop(0, '#7fff7f');
+                gradient.addColorStop(1, '#228B22');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // ======================
+        // Physics Update
+        // ======================
+        function isTouchingRestingBallTowardCenter(ball) {
+            for (const other of balls) {
+                if (other === ball || !other.resting || other.inBin) continue;
+                const dist = Physics.distance(ball.x, ball.y, other.x, other.y);
+
+                if (dist < BALL_RADIUS * 2.3) {
+                    const otherTowardCenter = (ball.x < CENTER_X && other.x > ball.x) ||
+                                               (ball.x > CENTER_X && other.x < ball.x);
+                    if (otherTowardCenter) return true;
+                }
+            }
+            return false;
+        }
+
+        function updateReservoirBallWakeup() {
+            for (const ball of balls) {
+                if (!ball.resting || ball.inBin) continue;
+
+                const slantY = getSlantY(ball.x);
+                const onSlant = ball.y + BALL_RADIUS >= slantY - 1;
+                const nearCenter = Math.abs(ball.x - CENTER_X) < BALL_RADIUS * 3;
+
+                if (onSlant && !nearCenter && !isTouchingRestingBallTowardCenter(ball)) {
+                    ball.resting = false;
+                }
+
+                if (doorsOpen) {
+                    ball.resting = false;
+                }
+            }
+        }
+
+        function updateBinBallWakeup() {
+            const binBottom = BIN_TOP + BIN_HEIGHT;
+
+            for (const ball of balls) {
+                if (!ball.inBin) continue;
+
+                // On floor - always stable
+                const onFloor = ball.y + BALL_RADIUS >= binBottom - 1;
+                if (onFloor) continue;
+
+                // Determine bin boundaries
+                const idx = getBinIndex(ball.x);
+
+                // Ball drifted outside bins - wake it up
+                if (idx === -1) {
+                    ball.inBin = false;
+                    ball.beyondBins = true;
+                    continue;
+                }
+
+                const binLeft = BIN_AREA_X + idx * BIN_WIDTH;
+                const binRight = binLeft + BIN_WIDTH;
+
+                // Check for support from left and right sides
+                let leftSupport = ball.x - BALL_RADIUS <= binLeft + 1;
+                let rightSupport = ball.x + BALL_RADIUS >= binRight - 1;
+
+                // Check for ball support from below
+                for (const other of balls) {
+                    if (other === ball) continue;
+                    const dx = ball.x - other.x;
+                    const dy = ball.y - other.y;
+                    const dist = Physics.distance(ball.x, ball.y, other.x, other.y);
+
+                    // Other ball is below and touching
+                    if (dist < BALL_RADIUS * 2.2 && dy < 0) {
+                        // Ball provides left support if it's to the left of this ball's center
+                        if (dx > BALL_RADIUS * 0.3) leftSupport = true;
+                        // Ball provides right support if it's to the right of this ball's center
+                        if (dx < -BALL_RADIUS * 0.3) rightSupport = true;
+                    }
+                }
+
+                // Not stable (missing support from one side) - wake up to roll
+                if (!leftSupport || !rightSupport) {
+                    ball.inBin = false;
+                }
+            }
+        }
+
+        function updateReservoirPhysics(ball) {
+            // Wall collisions (top and sides only)
+            Physics.constrainToRect(ball, BALL_RADIUS,
+                RESERVOIR_X, RESERVOIR_TOP,
+                RESERVOIR_X + RESERVOIR_WIDTH, Infinity);
+
+            // Slant collision
+            const slantY = getSlantY(ball.x);
+            let onSurface = false;
+
+            if (ball.y + BALL_RADIUS > slantY) {
+                const inDoorZone = ball.x > DOOR_LEFT && ball.x < DOOR_RIGHT;
+
+                if (inDoorZone && doorsOpen && doorAngle > 0.5) {
+                    ball.inReservoir = false;
+                } else {
+                    ball.y = slantY - BALL_RADIUS;
+                    onSurface = true;
+
+                    // Roll toward center
+                    const rollForce = 0.12;
+                    if (ball.x < CENTER_X) {
+                        ball.vx += rollForce;
+                    } else if (ball.x > CENTER_X) {
+                        ball.vx -= rollForce;
+                    }
+                    ball.vy = 0;
+                }
+            }
+
+            // Check if should rest
+            if (onSurface) {
+                const nearCenter = Math.abs(ball.x - CENTER_X) < BALL_RADIUS * 3;
+                const canRest = nearCenter || isTouchingRestingBallTowardCenter(ball);
+
+                if (canRest && Physics.isSettled(ball, 0.3)) {
+                    Physics.stop(ball);
+                    ball.resting = true;
+                }
+            }
+        }
+
+        function updateNailboardPhysics(ball) {
+            // Nail collisions
+            for (const nail of nails) {
+                Physics.collideWithCircle(ball, BALL_RADIUS, nail.x, nail.y, NAIL_RADIUS, {
+                    randomNudge: 1.5
+                });
+            }
+
+            // No side walls - balls can escape to outer bins
+        }
+
+        function updateBinPhysics(ball) {
+            const idx = getBinIndex(ball.x);
+
+            // Ball is beyond the bins - let it fall freely
+            if (idx === -1) {
+                ball.beyondBins = true;
+                return;
+            }
+
+            const binLeft = BIN_AREA_X + idx * BIN_WIDTH;
+            const binRight = binLeft + BIN_WIDTH;
+            const binBottom = BIN_TOP + BIN_HEIGHT;
+
+            // Bin boundaries
+            Physics.constrainToRect(ball, BALL_RADIUS, binLeft, -Infinity, binRight, binBottom);
+
+            // Collide with other balls in bin - treat settled balls as static
+            for (const other of balls) {
+                if (other === ball || other.inReservoir) continue;
+                Physics.collideBalls(ball, other, BALL_RADIUS, {
+                    ball2Static: other.inBin,
+                    onlyApproaching: !other.inBin
+                });
+            }
+
+            // Re-constrain after ball collisions
+            Physics.constrainToRect(ball, BALL_RADIUS, binLeft, -Infinity, binRight, binBottom);
+
+            // Only settle if velocity is low AND position is stable
+            if (Physics.isSettled(ball, 0.1)) {
+                // Check stability - need support from both sides or be on floor
+                const onFloor = ball.y + BALL_RADIUS >= binBottom - 1;
+
+                let leftSupport = ball.x - BALL_RADIUS <= binLeft + 1;
+                let rightSupport = ball.x + BALL_RADIUS >= binRight - 1;
+
+                for (const other of balls) {
+                    if (other === ball) continue;
+                    const dx = ball.x - other.x;
+                    const dy = ball.y - other.y;
+                    const dist = Physics.distance(ball.x, ball.y, other.x, other.y);
+
+                    if (dist < BALL_RADIUS * 2.2 && dy < 0) {
+                        if (dx > BALL_RADIUS * 0.3) leftSupport = true;
+                        if (dx < -BALL_RADIUS * 0.3) rightSupport = true;
+                    }
+                }
+
+                // Only settle if stable
+                if (onFloor || (leftSupport && rightSupport)) {
+                    ball.inBin = true;
+                    Physics.stop(ball);
+                }
+            }
+        }
+
+        function updateBallToBallCollisions(ball) {
+            for (const other of balls) {
+                if (other === ball || other.inBin) continue;
+
+                Physics.collideBalls(ball, other, BALL_RADIUS, {
+                    ball2Static: other.resting
+                });
+            }
+        }
+
+        function updatePhysics() {
+            // Wake up resting balls if needed
+            updateReservoirBallWakeup();
+            updateBinBallWakeup();
+
+            // Update each ball
+            for (const ball of balls) {
+                // Skip resting reservoir balls and settled bin balls
+                if (ball.resting && ball.inReservoir) continue;
+                if (ball.inBin) continue;
+
+                // Core physics
+                Physics.applyGravity(ball);
+                Physics.applyFriction(ball);
+                Physics.integrate(ball);
+
+                // Zone-specific physics
+                if (ball.inReservoir) {
+                    updateReservoirPhysics(ball);
+                } else {
+                    updateNailboardPhysics(ball);
+
+                    if (ball.y > BIN_TOP) {
+                        updateBinPhysics(ball);
+                    }
+                }
+
+                // Ball-to-ball collisions (outside bins)
+                if (!ball.inBin && ball.y <= BIN_TOP) {
+                    updateBallToBallCollisions(ball);
+                }
+            }
+
+            // Ensure all reservoir balls stay above slant and don't overlap (safety pass)
+            for (const ball of balls) {
+                if (!ball.inReservoir) continue;
+
+                // Resolve overlaps with other reservoir balls
+                for (const other of balls) {
+                    if (other === ball || !other.inReservoir) continue;
+
+                    const dist = Physics.distance(ball.x, ball.y, other.x, other.y);
+                    const minDist = BALL_RADIUS * 2;
+
+                    if (dist < minDist && dist > 0) {
+                        const n = Physics.normalize(ball.x - other.x, ball.y - other.y);
+                        const overlap = minDist - dist;
+
+                        // Push both apart, but bias upward to avoid going below slant
+                        ball.x += n.x * overlap * 0.5;
+                        ball.y += n.y * overlap * 0.5;
+                        other.x -= n.x * overlap * 0.5;
+                        other.y -= n.y * overlap * 0.5;
+
+                        // If pushed below slant, push back up
+                        const ballSlantY = getSlantY(ball.x);
+                        if (ball.y + BALL_RADIUS > ballSlantY) {
+                            ball.y = ballSlantY - BALL_RADIUS;
+                        }
+                        const otherSlantY = getSlantY(other.x);
+                        if (other.y + BALL_RADIUS > otherSlantY) {
+                            other.y = otherSlantY - BALL_RADIUS;
+                        }
+                    }
+                }
+
+                // Final constraint to slant and walls
+                const slantY = getSlantY(ball.x);
+                if (ball.y + BALL_RADIUS > slantY) ball.y = slantY - BALL_RADIUS;
+                if (ball.x - BALL_RADIUS < RESERVOIR_X) ball.x = RESERVOIR_X + BALL_RADIUS;
+                if (ball.x + BALL_RADIUS > RESERVOIR_X + RESERVOIR_WIDTH) ball.x = RESERVOIR_X + RESERVOIR_WIDTH - BALL_RADIUS;
+                if (ball.y - BALL_RADIUS < RESERVOIR_TOP) ball.y = RESERVOIR_TOP + BALL_RADIUS;
+            }
+
+            // Ensure all bin balls stay within bounds and don't overlap (safety pass)
+            const binBottom = BIN_TOP + BIN_HEIGHT;
+            for (const ball of balls) {
+                if (!ball.inBin) continue;
+
+                const idx = getBinIndex(ball.x);
+
+                // Ball is outside bins - shouldn't be marked as inBin
+                if (idx === -1) {
+                    ball.inBin = false;
+                    ball.beyondBins = true;
+                    continue;
+                }
+
+                const binLeft = BIN_AREA_X + idx * BIN_WIDTH;
+                const binRight = binLeft + BIN_WIDTH;
+
+                // Resolve overlaps with other settled balls in same bin
+                for (const other of balls) {
+                    if (other === ball || !other.inBin) continue;
+
+                    const dist = Physics.distance(ball.x, ball.y, other.x, other.y);
+                    const minDist = BALL_RADIUS * 2;
+
+                    if (dist < minDist && dist > 0) {
+                        const n = Physics.normalize(ball.x - other.x, ball.y - other.y);
+                        const overlap = minDist - dist;
+
+                        // Push both apart equally
+                        ball.x += n.x * overlap * 0.5;
+                        ball.y += n.y * overlap * 0.5;
+                        other.x -= n.x * overlap * 0.5;
+                        other.y -= n.y * overlap * 0.5;
+                    }
+                }
+
+                // Constrain to bin boundaries
+                if (ball.y + BALL_RADIUS > binBottom) ball.y = binBottom - BALL_RADIUS;
+                if (ball.x - BALL_RADIUS < binLeft) ball.x = binLeft + BALL_RADIUS;
+                if (ball.x + BALL_RADIUS > binRight) ball.x = binRight - BALL_RADIUS;
+            }
+
+            // Update stats and bin counts
+            binCounts.fill(0);
+            let ballsInBinArea = 0;
+            let ballsBeyondBins = 0;
+
+            for (const ball of balls) {
+                // Only count balls that are actually in the bin area (below BIN_TOP)
+                if (!ball.inReservoir && ball.y > BIN_TOP) {
+                    const idx = getBinIndex(ball.x);
+                    if (idx === -1) {
+                        ballsBeyondBins++;
+                    } else {
+                        ballsInBinArea++;
+                        binCounts[idx]++;
+                    }
+                }
+            }
+
+            // Calculate left/center/right percentages
+            // Left bins 1-5 (UI) = indices 0-4 (internal)
+            // Center bins 6-8 (UI) = indices 5-7 (internal)
+            // Right bins 9-13 (UI) = indices 8-12 (internal)
+            let leftCount = 0, centerCount = 0, rightCount = 0;
+            for (let i = 0; i <= 4; i++) leftCount += binCounts[i];
+            for (let i = 5; i <= 7; i++) centerCount += binCounts[i];
+            for (let i = 8; i <= 12; i++) rightCount += binCounts[i];
+
+            const totalInBins = ballsInBinArea;
+            const leftPct = totalInBins > 0 ? (leftCount / totalInBins * 100).toFixed(1) : 0;
+            const centerPct = totalInBins > 0 ? (centerCount / totalInBins * 100).toFixed(1) : 0;
+            const rightPct = totalInBins > 0 ? (rightCount / totalInBins * 100).toFixed(1) : 0;
+
+            ballCountSpan.textContent = balls.length;
+            binCountSpan.textContent = ballsInBinArea;
+            beyondCountSpan.textContent = ballsBeyondBins;
+            leftPctSpan.textContent = leftPct + '%';
+            centerPctSpan.textContent = centerPct + '%';
+            rightPctSpan.textContent = rightPct + '%';
+        }
+
+        // ======================
+        // Animation Loop
+        // ======================
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (doorsOpen && doorAngle < DOOR_MAX_ANGLE) {
+                doorAngle += 0.03;
+            } else if (!doorsOpen && doorAngle > 0) {
+                doorAngle -= 0.03;
+                if (doorAngle < 0) doorAngle = 0;
+            }
+
+            updatePhysics();
+
+            drawReservoir();
+            drawNails();
+            drawBins();
+            drawBalls();
+
+            requestAnimationFrame(animate);
+        }
+
+        // ======================
+        // Event Handlers
+        // ======================
+        dropButton.addEventListener('click', () => {
+            if (!doorsOpen) {
+                doorsOpen = true;
+                dropButton.textContent = 'Reset';
+            } else {
+                doorsOpen = false;
+                doorAngle = 0;
+                initBalls();
+                dropButton.textContent = 'Drop Balls';
+            }
+        });
+
+        ballSlider.addEventListener('input', (e) => {
+            numBalls = parseInt(e.target.value);
+            ballSliderValue.textContent = numBalls;
+            if (!doorsOpen) {
+                initBalls();
+            }
+        });
+
+        gravitySlider.addEventListener('input', (e) => {
+            Physics.gravity = parseFloat(e.target.value);
+            gravityValue.textContent = Physics.gravity.toFixed(2);
+        });
+
+        frictionSlider.addEventListener('input', (e) => {
+            const sliderVal = parseFloat(e.target.value);
+            // Convert: 0 = least friction (1.0), 1 = most friction (0.9)
+            Physics.friction = 1.0 - sliderVal * 0.1;
+            frictionValue.textContent = sliderVal.toFixed(2);
+        });
+
+        bounceSlider.addEventListener('input', (e) => {
+            Physics.bounce = parseFloat(e.target.value);
+            bounceValue.textContent = Physics.bounce.toFixed(2);
+        });
+
+        // ======================
+        // Start
+        // ======================
+        initBalls();
+        initNails();
+        animate();
+    </script>
+</body>
+</html>
