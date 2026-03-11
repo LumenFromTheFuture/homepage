@@ -3,108 +3,492 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ant Simulation</title>
+    <title>Emergence — De Principiis</title>
     <style>
+        /* ========================================
+           DE PRINCIPIIS — SHARED STYLE REFERENCE
+           ======================================== */
+        
+        :root {
+            /* Light theme (default) */
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f0f0f0;
+            --text-primary: #2a2a2a;
+            --text-secondary: #555555;
+            --text-muted: #888888;
+            --accent: #4a7ab0;
+            --accent-hover: #3d6a9c;
+            --border: #e0e0e0;
+            --shadow: rgba(0, 0, 0, 0.08);
+            --canvas-bg: #ffffff;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #1c2a4a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #bbbbbb;
+            --text-muted: #888888;
+            --accent: #7faadb;
+            --accent-hover: #9bc0eb;
+            --border: #2a3a5e;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --canvas-bg: #16213e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-primary);
+            min-height: 100vh;
+            font-family: Georgia, 'Times New Roman', serif;
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .breadcrumb {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .breadcrumb a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: normal;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-style: italic;
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-tertiary);
+        }
+
+        /* Main layout */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        /* Description */
+        .description {
+            max-width: 650px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Simulation container */
+        .simulation-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
         #grid {
             display: grid;
-            grid-template-columns: repeat(100, 10px);
-            grid-gap: 1px;
-            background-color: transparent;
+            grid-template-columns: repeat(100, 6px);
+            gap: 0;
+            background: var(--canvas-bg);
+            border-radius: 4px;
         }
+
         #grid.show-lines {
-            background-color: #f0f0f0;
+            gap: 1px;
+            background: var(--border);
         }
+
         .cell {
-            width: 10px;
-            height: 10px;
-            background-color: white;
+            width: 6px;
+            height: 6px;
+            background: var(--canvas-bg);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 8px;
+            font-size: 5px;
+            line-height: 1;
         }
-        #controls {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 10px;
-            border-radius: 5px;
+
+        /* Controls panel */
+        .controls {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 25px;
+            box-shadow: 0 4px 12px var(--shadow);
+            width: 100%;
+            max-width: 650px;
+        }
+
+        .controls-header {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--bg-tertiary);
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--accent-hover);
+        }
+
+        .control-group select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            h1 {
+                font-size: 1.6rem;
+            }
+
+            #grid {
+                grid-template-columns: repeat(100, 4px);
+            }
+
+            .cell {
+                width: 4px;
+                height: 4px;
+                font-size: 3px;
+            }
+
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="controls">
-        <button id="startStop">Start/Stop</button>
-        <button id="reset">Reset</button><br>
-        <label for="fillPercentage">Fill Percentage:</label>
-        <input type="range" id="fillPercentage" min="0" max="100" value="30"><br>
-        <label for="noiseLevel">Noise Level:</label>
-        <input type="range" id="noiseLevel" min="0" max="100" value="0"><br>
-        <input type="checkbox" id="showGrid"><label for="showGrid">Show Grid</label><br>
-        <select id="displayMode">
-            <option value="arrows">B/W Arrows</option>
-            <option value="balls">Color Balls</option>
-        </select>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <span id="theme-icon">☀️</span> <span id="theme-label">Light</span>
+    </button>
+
+    <div class="container">
+        <header>
+            <div class="breadcrumb">
+                <a href="index.html">De Principiis</a> → Emergence
+            </div>
+            <h1>Emergence</h1>
+            <p class="subtitle">How patterns arise from noisy movement</p>
+        </header>
+
+        <main class="main-content">
+            <p class="description">
+                Simple rules, followed by many independent agents, can produce complex collective 
+                behavior that none of them intended or could foresee. Watch the arrows align into 
+                swirling patterns — no central coordinator, just local decision making.
+            </p>
+
+            <div class="simulation-container">
+                <div id="grid"></div>
+            </div>
+
+            <div class="controls">
+                <div class="controls-header">Controls</div>
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label for="fillPercentage">Fill Percentage: <span id="fillValue">30</span>%</label>
+                        <input type="range" id="fillPercentage" min="0" max="100" value="30">
+                    </div>
+                    <div class="control-group">
+                        <label for="noiseLevel">Noise Level: <span id="noiseValue">0</span>%</label>
+                        <input type="range" id="noiseLevel" min="0" max="100" value="0">
+                    </div>
+                    <div class="control-group">
+                        <label for="displayMode">Display Mode</label>
+                        <select id="displayMode">
+                            <option value="arrows">Arrows</option>
+                            <option value="balls">Color Dots</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="showGrid">
+                            <label for="showGrid">Show Grid Lines</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="buttons">
+                    <button id="startStop" class="btn btn-primary">Start</button>
+                    <button id="reset" class="btn btn-secondary">Reset</button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>
+                <a href="index.html">← Back to De Principiis</a>
+            </p>
+        </footer>
     </div>
-    <div id="grid"></div>
+
     <script>
+        // Theme handling
+        function initTheme() {
+            const saved = localStorage.getItem('deprincipiis-theme');
+            if (saved === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                updateThemeUI('dark');
+            }
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            
+            if (next === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+            
+            localStorage.setItem('deprincipiis-theme', next);
+            updateThemeUI(next);
+        }
+
+        function updateThemeUI(theme) {
+            document.getElementById('theme-icon').textContent = theme === 'dark' ? '🌙' : '☀️';
+            document.getElementById('theme-label').textContent = theme === 'dark' ? 'Dark' : 'Light';
+        }
+
+        initTheme();
+
+        // Simulation
         let isRunning = false;
         let fillPercentage = 30;
         let noiseLevel = 0;
         let displayMode = 'arrows';
 
         const colorBalls = {
-            '→': '\u{1F7E1}', // yellow
-            '↘': '\u{1F7E0}', // orange
-            '↓': '\u{1F534}', // red
-            '↙': '\u{1F7E3}', // purple
-            '←': '\u{1F535}', // blue
-            '↖': '\u{1F7E4}', // brown
-            '↑': '\u{1F7E2}', // green
-            '↗': '\u{26AA}'   // white
+            '→': '🟡',
+            '↘': '🟠',
+            '↓': '🔴',
+            '↙': '🟣',
+            '←': '🔵',
+            '↖': '🟤',
+            '↑': '🟢',
+            '↗': '⚪'
         };
+
+        const gridSize = 100;
+        const directions = ['→', '↘', '↓', '↙', '←', '↖', '↑', '↗'];
+        let grid = [];
 
         document.addEventListener('DOMContentLoaded', () => {
             const startStopButton = document.getElementById('startStop');
+            const resetButton = document.getElementById('reset');
             const fillPercentageInput = document.getElementById('fillPercentage');
             const noiseLevelInput = document.getElementById('noiseLevel');
+            const showGridCheckbox = document.getElementById('showGrid');
+            const displayModeSelect = document.getElementById('displayMode');
 
             startStopButton.addEventListener('click', () => {
                 isRunning = !isRunning;
-                if (isRunning) {
-                    runSimulation();
-                }
+                startStopButton.textContent = isRunning ? 'Pause' : 'Start';
+                startStopButton.classList.toggle('btn-secondary', isRunning);
+                startStopButton.classList.toggle('btn-primary', !isRunning);
+                if (isRunning) runSimulation();
             });
 
-            const resetButton = document.getElementById('reset');
             resetButton.addEventListener('click', () => {
                 isRunning = false;
+                startStopButton.textContent = 'Start';
+                startStopButton.classList.remove('btn-secondary');
+                startStopButton.classList.add('btn-primary');
                 initialize();
             });
 
             fillPercentageInput.addEventListener('input', (e) => {
                 fillPercentage = parseInt(e.target.value);
+                document.getElementById('fillValue').textContent = fillPercentage;
                 initializeGrid();
             });
 
             noiseLevelInput.addEventListener('input', (e) => {
                 noiseLevel = parseInt(e.target.value);
+                document.getElementById('noiseValue').textContent = noiseLevel;
             });
 
-            const showGridCheckbox = document.getElementById('showGrid');
             showGridCheckbox.addEventListener('change', (e) => {
-                const gridElement = document.getElementById('grid');
-                gridElement.classList.toggle('show-lines', e.target.checked);
+                document.getElementById('grid').classList.toggle('show-lines', e.target.checked);
             });
 
-            const displayModeSelect = document.getElementById('displayMode');
             displayModeSelect.addEventListener('change', (e) => {
                 displayMode = e.target.value;
                 renderGrid();
             });
 
-            // Initialize the simulation
             initialize();
         });
 
@@ -114,11 +498,6 @@
             renderGrid();
             requestAnimationFrame(runSimulation);
         }
-
-        const gridSize = 100;
-        const generations = 1000;
-        const directions = ['→', '↘', '↓', '↙', '←', '↖','↑', '↗'];
-        let grid = [];
 
         function initializeGrid() {
             for (let i = 0; i < gridSize; i++) {
@@ -131,6 +510,7 @@
                     }
                 }
             }
+            renderGrid();
         }
 
         function renderGrid() {
@@ -194,7 +574,6 @@
 
         function initialize() {
             initializeGrid();
-            renderGrid();
         }
     </script>
 </body>

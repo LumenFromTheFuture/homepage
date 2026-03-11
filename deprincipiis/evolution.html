@@ -3,8 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evolution</title>
+    <title>Evolution — De Principiis</title>
     <style>
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f0f0f0;
+            --text-primary: #2a2a2a;
+            --text-secondary: #555555;
+            --text-muted: #888888;
+            --accent: #4a7ab0;
+            --accent-hover: #3d6a9c;
+            --border: #e0e0e0;
+            --shadow: rgba(0, 0, 0, 0.08);
+            --canvas-bg: #f5f5f5;
+            --positive: #4CAF50;
+            --negative: #e07070;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #1c2a4a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #bbbbbb;
+            --text-muted: #888888;
+            --accent: #7faadb;
+            --accent-hover: #9bc0eb;
+            --border: #2a3a5e;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --canvas-bg: #0a1628;
+            --positive: #70e070;
+            --negative: #e07070;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,179 +44,249 @@
         }
 
         body {
-            background: #1a1a2e;
+            background: var(--bg-primary);
             min-height: 100vh;
-            font-family: Georgia, serif;
-            color: #e0e0e0;
-            padding: 40px 20px;
+            font-family: Georgia, 'Times New Roman', serif;
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background 0.3s, color 0.3s;
         }
 
         .container {
             max-width: 1000px;
             margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px var(--shadow);
+            z-index: 100;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-tertiary);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .breadcrumb {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .breadcrumb a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
         }
 
         h1 {
-            text-align: center;
-            color: #7faadb;
-            margin-bottom: 10px;
+            font-size: 2rem;
             font-weight: normal;
+            color: var(--accent);
+            margin-bottom: 8px;
         }
 
         .subtitle {
-            text-align: center;
-            color: #888;
-            margin-bottom: 30px;
             font-style: italic;
+            color: var(--text-muted);
+            font-size: 1rem;
         }
 
-        .explanation {
-            text-align: center;
-            line-height: 1.6;
-            color: #bbb;
-            margin-bottom: 40px;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
+        .section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px var(--shadow);
         }
 
-        .simulation {
-            background: #16213e;
-            border-radius: 10px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-        }
-
-        .simulation h2 {
-            color: #7faadb;
-            font-size: 18px;
-            margin-bottom: 20px;
+        .section h2 {
+            color: var(--accent);
+            font-size: 1.1rem;
+            margin-bottom: 15px;
             font-weight: normal;
             text-align: center;
+        }
+
+        .how-it-works-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 15px;
+        }
+
+        .how-item {
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        .how-item h3 {
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+            font-weight: normal;
+        }
+
+        .how-item p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.5;
         }
 
         .world-container {
             display: flex;
             justify-content: center;
-            margin-bottom: 20px;
+            margin: 20px 0;
         }
 
-        #world {
-            background: #0a1628;
+        canvas {
             border-radius: 8px;
-            border: 1px solid #2a3a5e;
+            border: 1px solid var(--border);
         }
 
         .controls {
             display: flex;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 15px;
             justify-content: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .control-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            min-width: 180px;
+            gap: 5px;
+            min-width: 150px;
         }
 
         .control-group label {
-            color: #7faadb;
-            font-size: 13px;
-        }
-
-        .control-group input[type="range"] {
-            width: 100%;
-            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
         }
 
         .control-value {
-            color: #4CAF50;
+            color: var(--positive);
             font-weight: bold;
             font-family: monospace;
         }
 
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--bg-tertiary);
+            appearance: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+        }
+
         .sim-controls {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             justify-content: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
-        button {
-            padding: 12px 30px;
-            font-size: 16px;
-            font-family: Georgia, serif;
+        .btn {
+            padding: 10px 24px;
+            font-size: 0.95rem;
+            font-family: inherit;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
 
-        button.primary {
-            background: #4a7ab0;
+        .btn-primary {
+            background: var(--accent);
             color: white;
         }
 
-        button.primary:hover {
-            background: #5a8ac0;
+        .btn-primary:hover {
+            background: var(--accent-hover);
         }
 
-        button.secondary {
-            background: #705070;
-            color: white;
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
         }
 
-        button.secondary:hover {
-            background: #806080;
+        .btn-secondary:hover {
+            background: var(--border);
         }
 
         .stats-container {
             display: flex;
             justify-content: center;
-            gap: 30px;
+            gap: 15px;
             flex-wrap: wrap;
         }
 
         .stat-box {
-            background: #0d1421;
-            padding: 15px 25px;
+            background: var(--bg-tertiary);
+            padding: 12px 20px;
             border-radius: 8px;
             text-align: center;
-            min-width: 120px;
+            min-width: 100px;
         }
 
         .stat-label {
-            font-size: 12px;
-            color: #888;
+            font-size: 0.7rem;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
         .stat-value {
-            font-size: 24px;
+            font-size: 1.3rem;
             font-weight: bold;
-            color: #7faadb;
-            margin-top: 5px;
+            color: var(--accent);
+            margin-top: 3px;
         }
 
-        .trait-chart {
-            background: #16213e;
-            border-radius: 10px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        .stat-value.positive {
+            color: var(--positive);
         }
 
-        .trait-chart h2 {
-            color: #7faadb;
-            font-size: 18px;
-            margin-bottom: 20px;
-            font-weight: normal;
+        .stat-value.negative {
+            color: var(--negative);
+        }
+
+        .chart-note {
             text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 15px;
         }
 
         .chart-container {
@@ -192,75 +294,96 @@
             justify-content: center;
         }
 
-        .takeaway {
-            background: #16213e;
-            border-radius: 10px;
-            padding: 30px;
-            margin-top: 30px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-        }
-
-        .takeaway h2 {
-            color: #7faadb;
-            font-size: 18px;
-            margin-bottom: 15px;
-            font-weight: normal;
-        }
-
         .takeaway p {
-            color: #bbb;
+            color: var(--text-secondary);
             line-height: 1.7;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .takeaway .highlight {
-            color: #7faadb;
+            color: var(--accent);
             font-style: italic;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 700px) {
+            .control-group {
+                min-width: 130px;
+            }
+
+            .stat-box {
+                min-width: 80px;
+                padding: 10px 12px;
+            }
+
+            .stat-value {
+                font-size: 1.1rem;
+            }
         }
     </style>
 </head>
 <body>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <span id="theme-icon">☀️</span> <span id="theme-label">Light</span>
+    </button>
+
     <div class="container">
-        <h1>Evolution</h1>
-        <p class="subtitle">Design without a designer</p>
-        
-        <div class="how-it-works" style="background: #16213e; border-radius: 10px; padding: 25px; margin-bottom: 30px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);">
-            <h2 style="color: #7faadb; font-size: 18px; margin-bottom: 15px; font-weight: normal;">How It Works</h2>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; color: #bbb; line-height: 1.6;">
-                <div>
-                    <h3 style="color: #90EE90; font-size: 14px; margin-bottom: 8px;">🟢 Food</h3>
-                    <p style="font-size: 14px; margin: 0;">Green dots are food. Creatures must eat to gain energy. Food respawns randomly.</p>
+        <header>
+            <div class="breadcrumb">
+                <a href="index.html">De Principiis</a> → Evolution
+            </div>
+            <h1>Evolution</h1>
+            <p class="subtitle">Design without a designer</p>
+        </header>
+
+        <div class="section">
+            <h2>How It Works</h2>
+            <div class="how-it-works-grid">
+                <div class="how-item">
+                    <h3 style="color: #4CAF50;">🟢 Food</h3>
+                    <p>Green dots are food. Creatures must eat to gain energy. Food respawns randomly.</p>
                 </div>
-                
-                <div>
-                    <h3 style="color: #7faadb; font-size: 14px; margin-bottom: 8px;">🔵 Creatures</h3>
-                    <p style="font-size: 14px; margin: 0;">Colored circles are creatures with two traits: <strong>speed</strong> and <strong>efficiency</strong>. <strong>Size</strong> = speed (smaller = faster, larger = slower). <strong>Color</strong> = efficiency (blue = efficient/cool, red = inefficient/running hot).</p>
+                <div class="how-item">
+                    <h3 style="color: var(--accent);">🔵 Creatures</h3>
+                    <p>Colored circles with two traits: <strong>speed</strong> and <strong>efficiency</strong>. Size = speed (smaller = faster). Color = efficiency (blue = efficient, red = inefficient).</p>
                 </div>
-                
-                <div>
-                    <h3 style="color: #e07070; font-size: 14px; margin-bottom: 8px;">💀 Death</h3>
-                    <p style="font-size: 14px; margin: 0;">Creatures die when energy hits zero OR when they reach max lifespan. Faster creatures burn more energy. Eating food restores energy.</p>
+                <div class="how-item">
+                    <h3 style="color: #e07070;">💀 Death</h3>
+                    <p>Creatures die when energy hits zero OR max lifespan. Faster creatures burn more energy. Eating restores energy.</p>
                 </div>
-                
-                <div>
-                    <h3 style="color: #e0e070; font-size: 14px; margin-bottom: 8px;">🥚 Reproduction</h3>
-                    <p style="font-size: 14px; margin: 0;">When a creature has enough energy (>150), it reproduces. Offspring inherit parent's traits with small random changes — that's <strong>mutation</strong>.</p>
+                <div class="how-item">
+                    <h3 style="color: #e0c050;">🥚 Reproduction</h3>
+                    <p>When energy > 150, creatures reproduce. Offspring inherit traits with small random changes — that's <strong>mutation</strong>.</p>
                 </div>
-                
-                <div>
-                    <h3 style="color: #c090e0; font-size: 14px; margin-bottom: 8px;">🧬 Mutation</h3>
-                    <p style="font-size: 14px; margin: 0;">Each offspring's speed and efficiency can randomly shift slightly from parent's values. Higher mutation rate = more variation = faster evolution (but also more failed experiments).</p>
+                <div class="how-item">
+                    <h3 style="color: #c090e0;">🧬 Mutation</h3>
+                    <p>Each offspring's traits can randomly shift from parent's values. Higher rate = more variation = faster evolution.</p>
                 </div>
-                
-                <div>
-                    <h3 style="color: #e09050; font-size: 14px; margin-bottom: 8px;">📈 Selection</h3>
-                    <p style="font-size: 14px; margin: 0;">No one chooses who survives. Creatures that find food and reproduce pass on their traits. Over time, the population shifts toward traits that work in this environment.</p>
+                <div class="how-item">
+                    <h3 style="color: #e09050;">📈 Selection</h3>
+                    <p>No one chooses who survives. Creatures that find food and reproduce pass on traits. Population shifts toward what works.</p>
                 </div>
             </div>
         </div>
 
-        <div class="simulation">
+        <div class="section">
             <h2>The World</h2>
             
             <div class="controls">
@@ -295,8 +418,8 @@
             </div>
 
             <div class="sim-controls">
-                <button class="secondary" id="resetBtn">Reset</button>
-                <button class="primary" id="playBtn">Start</button>
+                <button class="btn btn-secondary" id="resetBtn">Reset</button>
+                <button class="btn btn-primary" id="playBtn">Start</button>
             </div>
 
             <div class="world-container">
@@ -314,11 +437,11 @@
                 </div>
                 <div class="stat-box">
                     <div class="stat-label">Births</div>
-                    <div class="stat-value" id="births" style="color: #90EE90;">0</div>
+                    <div class="stat-value positive" id="births">0</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-label">Deaths</div>
-                    <div class="stat-value" id="deaths" style="color: #e07070;">0</div>
+                    <div class="stat-value negative" id="deaths">0</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-label">Avg Speed</div>
@@ -331,17 +454,15 @@
             </div>
         </div>
 
-        <div class="trait-chart">
+        <div class="section">
             <h2>Trait Distribution Over Time</h2>
-            <p style="text-align: center; color: #888; font-size: 14px; margin-bottom: 15px;">
-                Watch how average traits shift as selection favors what works
-            </p>
+            <p class="chart-note">Watch how average traits shift as selection favors what works</p>
             <div class="chart-container">
                 <canvas id="traitChart" width="700" height="200"></canvas>
             </div>
         </div>
 
-        <div class="takeaway">
+        <div class="section takeaway">
             <h2>Nobody Designed This</h2>
             <p>
                 The creatures that survive aren't "designed" to be fast or efficient. They simply 
@@ -360,9 +481,68 @@
                 What are we selecting for when we train AI systems? What might emerge that we didn't intend?
             </p>
         </div>
+
+        <footer>
+            <p><a href="index.html">← Back to De Principiis</a></p>
+        </footer>
     </div>
 
     <script>
+        // Theme handling
+        let canvasColors = {};
+
+        function initTheme() {
+            const saved = localStorage.getItem('deprincipiis-theme');
+            if (saved === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                updateThemeUI('dark');
+            }
+            updateCanvasColors();
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            
+            if (next === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+            
+            localStorage.setItem('deprincipiis-theme', next);
+            updateThemeUI(next);
+            updateCanvasColors();
+        }
+
+        function updateThemeUI(theme) {
+            document.getElementById('theme-icon').textContent = theme === 'dark' ? '🌙' : '☀️';
+            document.getElementById('theme-label').textContent = theme === 'dark' ? 'Dark' : 'Light';
+        }
+
+        function updateCanvasColors() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            canvasColors = isDark ? {
+                bg: '#0a1628',
+                chartBg: '#0d1421',
+                grid: '#2a3a5e',
+                text: '#888888',
+                food: '#90EE90',
+                speed: '#7faadb',
+                efficiency: '#70e070'
+            } : {
+                bg: '#f0f4f8',
+                chartBg: '#f8f8f8',
+                grid: '#d0d0d0',
+                text: '#666666',
+                food: '#4CAF50',
+                speed: '#4a7ab0',
+                efficiency: '#4CAF50'
+            };
+        }
+
+        initTheme();
+
         const canvas = document.getElementById('world');
         const ctx = canvas.getContext('2d');
         const traitCanvas = document.getElementById('traitChart');
@@ -387,8 +567,8 @@
             constructor(x, y, speed, efficiency, generation) {
                 this.x = x;
                 this.y = y;
-                this.speed = speed;           // 0.5 - 3
-                this.efficiency = efficiency; // 0.5 - 2 (lower = more efficient)
+                this.speed = speed;
+                this.efficiency = efficiency;
                 this.energy = 100;
                 this.generation = generation;
                 this.age = 0;
@@ -396,7 +576,6 @@
             }
 
             update() {
-                // Find nearest food
                 let nearestFood = null;
                 let nearestDist = Infinity;
                 for (const f of food) {
@@ -407,7 +586,6 @@
                     }
                 }
 
-                // Move toward food or wander
                 if (nearestFood && nearestDist < 150) {
                     this.angle = Math.atan2(nearestFood.y - this.y, nearestFood.x - this.x);
                 } else {
@@ -417,7 +595,6 @@
                 this.x += Math.cos(this.angle) * this.speed;
                 this.y += Math.sin(this.angle) * this.speed;
 
-                // Bounce off walls
                 if (this.x < 0 || this.x > canvas.width) {
                     this.angle = Math.PI - this.angle;
                     this.x = Math.max(0, Math.min(canvas.width, this.x));
@@ -427,14 +604,12 @@
                     this.y = Math.max(0, Math.min(canvas.height, this.y));
                 }
 
-                // Age and energy cost
                 this.age++;
                 const speedCost = parseFloat(document.getElementById('speedCost').value) / 100;
                 this.energy -= speedCost * this.speed * this.efficiency;
 
-                // Eat food
                 const foodVal = parseInt(document.getElementById('foodValue').value);
-                const size = 3 + (3 - this.speed) * 3; // same formula as draw
+                const size = 3 + (3 - this.speed) * 3;
                 for (let i = food.length - 1; i >= 0; i--) {
                     const dist = Math.hypot(food[i].x - this.x, food[i].y - this.y);
                     if (dist < size + 5) {
@@ -446,19 +621,14 @@
             }
 
             draw() {
-                // Size = speed (smaller = faster, larger = slower)
-                const size = 3 + (3 - this.speed) * 3; // speed 3 -> size 3, speed 0.5 -> size 10.5
-                
-                // Color = efficiency (blue = efficient/cool, red = inefficient/hot)
-                // efficiency ranges 0.5 (good) to 2 (bad)
-                const hue = 240 - (this.efficiency - 0.5) * 160; // 240 (blue) to 0 (red)
+                const size = 3 + (3 - this.speed) * 3;
+                const hue = 240 - (this.efficiency - 0.5) * 160;
                 ctx.fillStyle = `hsl(${hue}, 70%, 55%)`;
                 
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, size, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Direction indicator
                 ctx.strokeStyle = `hsl(${hue}, 70%, 75%)`;
                 ctx.lineWidth = 2;
                 ctx.beginPath();
@@ -516,8 +686,8 @@
                 creatures.push(new Creature(
                     Math.random() * canvas.width,
                     Math.random() * canvas.height,
-                    0.5 + Math.random() * 2.5,  // speed: 0.5-3
-                    0.5 + Math.random() * 1.5,  // efficiency: 0.5-2
+                    0.5 + Math.random() * 2.5,
+                    0.5 + Math.random() * 1.5,
                     0
                 ));
             }
@@ -532,18 +702,15 @@
             const speed = parseInt(document.getElementById('simSpeed').value);
             
             for (let s = 0; s < speed; s++) {
-                // Update creatures
                 for (const creature of creatures) {
                     creature.update();
                 }
 
-                // Remove dead creatures (energy depleted OR too old)
                 const lifespan = parseInt(document.getElementById('lifespan').value);
                 const beforeCount = creatures.length;
                 creatures = creatures.filter(c => c.energy > 0 && c.age < lifespan);
                 totalDeaths += beforeCount - creatures.length;
 
-                // Reproduction (no artificial cap - food scarcity regulates population)
                 const reproThreshold = parseInt(document.getElementById('reproThreshold').value);
                 const offspring = [];
                 for (const creature of creatures) {
@@ -555,19 +722,16 @@
                 }
                 creatures.push(...offspring);
 
-                // Spawn food periodically
                 if (Math.random() < 0.1) {
                     spawnFood();
                 }
 
-                // Track generation - current living max and all-time max
                 if (creatures.length > 0) {
                     generation = Math.max(...creatures.map(c => c.generation));
                     maxGenerationEver = Math.max(maxGenerationEver, generation);
                 }
             }
 
-            // Record trait history periodically (every 10 frames)
             if (creatures.length > 0 && frameCount % 10 === 0) {
                 const speeds = creatures.map(c => c.speed);
                 const effs = creatures.map(c => c.efficiency);
@@ -588,25 +752,23 @@
         }
 
         function draw() {
-            ctx.fillStyle = '#0a1628';
+            ctx.fillStyle = canvasColors.bg;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Draw food
-            ctx.fillStyle = '#90EE90';
+            ctx.fillStyle = canvasColors.food;
             for (const f of food) {
                 ctx.beginPath();
                 ctx.arc(f.x, f.y, 5, 0, Math.PI * 2);
                 ctx.fill();
             }
 
-            // Draw creatures
             for (const creature of creatures) {
                 creature.draw();
             }
         }
 
         function drawTraitChart() {
-            traitCtx.fillStyle = '#0d1421';
+            traitCtx.fillStyle = canvasColors.chartBg;
             traitCtx.fillRect(0, 0, traitCanvas.width, traitCanvas.height);
 
             if (traitHistory.length < 2) return;
@@ -615,8 +777,7 @@
             const width = traitCanvas.width - padding.left - padding.right;
             const height = traitCanvas.height - padding.top - padding.bottom;
 
-            // Axes
-            traitCtx.strokeStyle = '#2a3a5e';
+            traitCtx.strokeStyle = canvasColors.grid;
             traitCtx.lineWidth = 1;
             traitCtx.beginPath();
             traitCtx.moveTo(padding.left, padding.top);
@@ -624,15 +785,13 @@
             traitCtx.lineTo(traitCanvas.width - padding.right, traitCanvas.height - padding.bottom);
             traitCtx.stroke();
 
-            // Labels
-            traitCtx.fillStyle = '#888';
+            traitCtx.fillStyle = canvasColors.text;
             traitCtx.font = '12px Georgia';
             traitCtx.textAlign = 'center';
             traitCtx.fillText('Generation', traitCanvas.width / 2, traitCanvas.height - 5);
 
-            // Draw speed band (min to max) then average line
-            // Band
-            traitCtx.fillStyle = 'rgba(127, 170, 219, 0.25)';
+            // Speed band
+            traitCtx.fillStyle = canvasColors.speed + '40';
             traitCtx.beginPath();
             traitHistory.forEach((d, i) => {
                 const x = padding.left + (i / (traitHistory.length - 1 || 1)) * width;
@@ -649,8 +808,7 @@
             traitCtx.closePath();
             traitCtx.fill();
             
-            // Average line
-            traitCtx.strokeStyle = '#7faadb';
+            traitCtx.strokeStyle = canvasColors.speed;
             traitCtx.lineWidth = 2;
             traitCtx.beginPath();
             traitHistory.forEach((d, i) => {
@@ -661,9 +819,8 @@
             });
             traitCtx.stroke();
 
-            // Draw efficiency band then average line
-            // Band
-            traitCtx.fillStyle = 'rgba(112, 224, 112, 0.25)';
+            // Efficiency band
+            traitCtx.fillStyle = canvasColors.efficiency + '40';
             traitCtx.beginPath();
             traitHistory.forEach((d, i) => {
                 const x = padding.left + (i / (traitHistory.length - 1 || 1)) * width;
@@ -680,8 +837,7 @@
             traitCtx.closePath();
             traitCtx.fill();
             
-            // Average line
-            traitCtx.strokeStyle = '#70e070';
+            traitCtx.strokeStyle = canvasColors.efficiency;
             traitCtx.lineWidth = 2;
             traitCtx.beginPath();
             traitHistory.forEach((d, i) => {
@@ -693,15 +849,15 @@
             traitCtx.stroke();
 
             // Legend
-            traitCtx.fillStyle = '#7faadb';
+            traitCtx.fillStyle = canvasColors.speed;
             traitCtx.fillRect(traitCanvas.width - 120, 10, 15, 3);
-            traitCtx.fillStyle = '#aaa';
+            traitCtx.fillStyle = canvasColors.text;
             traitCtx.textAlign = 'left';
             traitCtx.fillText('Speed', traitCanvas.width - 100, 15);
 
-            traitCtx.fillStyle = '#70e070';
+            traitCtx.fillStyle = canvasColors.efficiency;
             traitCtx.fillRect(traitCanvas.width - 120, 25, 15, 3);
-            traitCtx.fillStyle = '#aaa';
+            traitCtx.fillStyle = canvasColors.text;
             traitCtx.fillText('Efficiency', traitCanvas.width - 100, 30);
         }
 
@@ -730,7 +886,6 @@
             animationId = requestAnimationFrame(loop);
         }
 
-        // Event listeners
         document.getElementById('playBtn').addEventListener('click', () => {
             running = !running;
             document.getElementById('playBtn').textContent = running ? 'Pause' : 'Start';
@@ -744,7 +899,6 @@
             init();
         });
 
-        // Slider labels
         document.getElementById('mutationRate').addEventListener('input', (e) => {
             document.getElementById('mutationValue').textContent = e.target.value;
         });
@@ -767,7 +921,6 @@
             document.getElementById('speedValue').textContent = e.target.value;
         });
 
-        // Initialize
         init();
     </script>
 </body>

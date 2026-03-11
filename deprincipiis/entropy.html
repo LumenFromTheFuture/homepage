@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entropy — De Principiis</title>
+    <style>
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f0f0f0;
+            --text-primary: #2a2a2a;
+            --text-secondary: #555555;
+            --text-muted: #888888;
+            --accent: #4a7ab0;
+            --accent-hover: #3d6a9c;
+            --border: #e0e0e0;
+            --shadow: rgba(0, 0, 0, 0.08);
+            --tile-bg: #d0d0d0;
+            --correct: #4CAF50;
+            --displaced: #e07070;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #1c2a4a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #bbbbbb;
+            --text-muted: #888888;
+            --accent: #7faadb;
+            --accent-hover: #9bc0eb;
+            --border: #2a3a5e;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --tile-bg: #2a2a4a;
+            --correct: #4ade80;
+            --displaced: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-primary);
+            min-height: 100vh;
+            font-family: Georgia, 'Times New Roman', serif;
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px var(--shadow);
+            z-index: 100;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-tertiary);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .breadcrumb {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .breadcrumb a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: normal;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-style: italic;
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .quote {
+            font-style: italic;
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .stat {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .stat-value.good {
+            color: var(--correct);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .instruction {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .instruction.has-selection {
+            color: var(--correct);
+        }
+
+        .grid-container {
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        #grid {
+            display: grid;
+            gap: 2px;
+        }
+
+        .tile {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+            cursor: pointer;
+        }
+
+        .tile.background {
+            background: var(--tile-bg);
+        }
+
+        .tile.correct {
+            background: linear-gradient(135deg, #22c55e, #4ade80);
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+        }
+
+        .tile.displaced {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+        }
+
+        .tile.target-hint {
+            box-shadow: inset 0 0 0 3px rgba(34, 197, 94, 0.3);
+        }
+
+        .tile.selected {
+            transform: scale(1.15);
+            box-shadow: 0 0 20px rgba(74, 122, 176, 0.8);
+            z-index: 10;
+        }
+
+        .tile:hover {
+            transform: scale(1.05);
+        }
+
+        .tile.selected:hover {
+            transform: scale(1.15);
+        }
+
+        .combinatorics {
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .combinatorics .big-number {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 10px 15px;
+            border-radius: 6px;
+        }
+
+        .slider-container label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        input[type="range"] {
+            width: 100px;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--bg-tertiary);
+            appearance: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+        }
+
+        .explanation {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .explanation h2 {
+            color: var(--accent);
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            font-weight: normal;
+        }
+
+        .explanation p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+
+        .insight-box {
+            background: var(--bg-tertiary);
+            border-left: 3px solid var(--accent);
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .insight-box h3 {
+            color: var(--accent);
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+            font-weight: normal;
+        }
+
+        .insight-box p {
+            margin-bottom: 0;
+            font-size: 0.95rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 500px) {
+            .tile {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .stats {
+                gap: 8px;
+            }
+            
+            .stat {
+                padding: 10px;
+            }
+            
+            .stat-value {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <span id="theme-icon">☀️</span> <span id="theme-label">Light</span>
+    </button>
+
+    <div class="container">
+        <header>
+            <div class="breadcrumb">
+                <a href="index.html">De Principiis</a> → Entropy
+            </div>
+            <h1>Entropy</h1>
+            <p class="subtitle">Why disorder is overwhelmingly more probable than order</p>
+            <p class="quote">"The law that entropy always increases holds, I think, the supreme position among the laws of Nature." — Arthur Eddington</p>
+        </header>
+
+        <main class="main-content">
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value" id="order-percent">100%</div>
+                    <div class="stat-label">Order</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="work-done">0</div>
+                    <div class="stat-label">Work Done</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="swaps">0</div>
+                    <div class="stat-label">Random Swaps</div>
+                </div>
+            </div>
+
+            <p class="instruction" id="instruction">Click a tile to select it, then click where you want it to go</p>
+
+            <div class="grid-container">
+                <div id="grid"></div>
+            </div>
+
+            <div class="combinatorics">
+                <span class="big-number">1</span> ordered state among <span class="big-number" id="total-states">—</span> possible arrangements
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" id="reset-btn">Reset Order</button>
+                <button class="btn btn-secondary" id="pause-btn">Pause</button>
+                <div class="slider-container">
+                    <label>Temperature:</label>
+                    <input type="range" id="temp-slider" min="1" max="10" value="5">
+                    <span id="temp-value">5</span>
+                </div>
+            </div>
+
+            <div class="explanation">
+                <h2>The Principle</h2>
+                <p>
+                    There is exactly <strong>one way</strong> for these tiles to form the pattern, but 
+                    <strong>astronomical numbers</strong> of ways for them to be disordered. Random motion 
+                    doesn't "push" toward disorder—disorder is simply overwhelmingly more probable.
+                </p>
+                
+                <div class="insight-box">
+                    <h3>🎯 The Core Insight</h3>
+                    <p>Entropy isn't a force. It's statistics. With 17 colored tiles among 64 positions, there are over a quadrillion arrangements—but only ONE is the pattern. Random shuffling finds disorder because disorder is almost everything.</p>
+                </div>
+                
+                <p>
+                    <strong>Click tiles to move them back into place.</strong> Green tiles are correct; 
+                    red tiles have escaped. The faint outlines show where tiles belong. Notice: the moment 
+                    you stop working, entropy takes over.
+                </p>
+                
+                <div class="insight-box">
+                    <h3>🌱 Connection to Life</h3>
+                    <p>Living things maintain extraordinary order—proteins folded precisely, cells organized, bodies structured. This requires constant work: metabolism. When the work stops, entropy wins. Life is a temporary, local rebellion against probability.</p>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p><a href="index.html">← Back to De Principiis</a></p>
+        </footer>
+    </div>
+
+    <script>
+        // Theme handling
+        function initTheme() {
+            const saved = localStorage.getItem('deprincipiis-theme');
+            if (saved === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                updateThemeUI('dark');
+            }
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            
+            if (next === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+            
+            localStorage.setItem('deprincipiis-theme', next);
+            updateThemeUI(next);
+        }
+
+        function updateThemeUI(theme) {
+            document.getElementById('theme-icon').textContent = theme === 'dark' ? '🌙' : '☀️';
+            document.getElementById('theme-label').textContent = theme === 'dark' ? 'Dark' : 'Light';
+        }
+
+        initTheme();
+
+        const GRID_SIZE = 8;
+        const PATTERN = [
+            [0,0,0,0,0,0,0,0],
+            [0,1,1,1,1,1,0,0],
+            [0,1,0,0,0,0,0,0],
+            [0,1,1,1,1,0,0,0],
+            [0,1,0,0,0,0,0,0],
+            [0,1,0,0,0,0,0,0],
+            [0,1,1,1,1,1,0,0],
+            [0,0,0,0,0,0,0,0],
+        ];
+
+        let grid = [];
+        let targetGrid = [];
+        let swapCount = 0;
+        let workCount = 0;
+        let isPaused = false;
+        let temperature = 5;
+        let selectedIndex = null;
+
+        const gridEl = document.getElementById('grid');
+        const orderEl = document.getElementById('order-percent');
+        const workEl = document.getElementById('work-done');
+        const swapsEl = document.getElementById('swaps');
+        const totalStatesEl = document.getElementById('total-states');
+        const resetBtn = document.getElementById('reset-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const tempSlider = document.getElementById('temp-slider');
+        const tempValue = document.getElementById('temp-value');
+        const instructionEl = document.getElementById('instruction');
+
+        function init() {
+            grid = [];
+            targetGrid = [];
+            selectedIndex = null;
+            
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const isPattern = PATTERN[y][x] === 1;
+                    grid.push(isPattern ? 1 : 0);
+                    targetGrid.push(isPattern ? 1 : 0);
+                }
+            }
+            
+            const patternCount = grid.filter(t => t === 1).length;
+            const totalTiles = GRID_SIZE * GRID_SIZE;
+            const combinations = factorial(totalTiles) / (factorial(patternCount) * factorial(totalTiles - patternCount));
+            totalStatesEl.textContent = combinations.toExponential(1);
+            
+            swapCount = 0;
+            workCount = 0;
+            
+            renderGrid();
+            updateStats();
+            updateInstruction();
+        }
+
+        function factorial(n) {
+            if (n <= 1) return 1;
+            let result = 1;
+            for (let i = 2; i <= n; i++) result *= i;
+            return result;
+        }
+
+        function updateInstruction() {
+            if (selectedIndex !== null) {
+                instructionEl.textContent = "Now click the destination";
+                instructionEl.classList.add('has-selection');
+            } else {
+                instructionEl.textContent = "Click a tile to select it, then click where you want it to go";
+                instructionEl.classList.remove('has-selection');
+            }
+        }
+
+        function renderGrid() {
+            gridEl.innerHTML = '';
+            gridEl.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 40px)`;
+            
+            grid.forEach((value, index) => {
+                const tile = document.createElement('div');
+                const isTargetPosition = targetGrid[index] === 1;
+                const hasPatternTile = value === 1;
+                
+                tile.className = 'tile';
+                
+                if (hasPatternTile) {
+                    if (isTargetPosition) {
+                        tile.classList.add('correct');
+                    } else {
+                        tile.classList.add('displaced');
+                    }
+                } else {
+                    tile.classList.add('background');
+                    if (isTargetPosition) {
+                        tile.classList.add('target-hint');
+                    }
+                }
+                
+                if (index === selectedIndex) {
+                    tile.classList.add('selected');
+                }
+                
+                tile.dataset.index = index;
+                tile.addEventListener('click', handleTileClick);
+                
+                gridEl.appendChild(tile);
+            });
+        }
+
+        function handleTileClick(e) {
+            const clickedIndex = parseInt(e.target.dataset.index);
+            
+            if (selectedIndex === null) {
+                selectedIndex = clickedIndex;
+            } else if (selectedIndex === clickedIndex) {
+                selectedIndex = null;
+            } else {
+                const temp = grid[selectedIndex];
+                grid[selectedIndex] = grid[clickedIndex];
+                grid[clickedIndex] = temp;
+                
+                workCount++;
+                selectedIndex = null;
+            }
+            
+            renderGrid();
+            updateStats();
+            updateInstruction();
+        }
+
+        function randomSwap() {
+            if (isPaused) return;
+            
+            const index1 = Math.floor(Math.random() * grid.length);
+            
+            const x1 = index1 % GRID_SIZE;
+            const y1 = Math.floor(index1 / GRID_SIZE);
+            
+            const directions = [];
+            if (x1 > 0) directions.push(-1);
+            if (x1 < GRID_SIZE - 1) directions.push(1);
+            if (y1 > 0) directions.push(-GRID_SIZE);
+            if (y1 < GRID_SIZE - 1) directions.push(GRID_SIZE);
+            
+            if (directions.length === 0) return;
+            
+            const offset = directions[Math.floor(Math.random() * directions.length)];
+            const index2 = index1 + offset;
+            
+            if (grid[index1] !== grid[index2]) {
+                const temp = grid[index1];
+                grid[index1] = grid[index2];
+                grid[index2] = temp;
+                swapCount++;
+                
+                renderGrid();
+                updateStats();
+            }
+        }
+
+        function updateStats() {
+            let correctCount = 0;
+            const patternIndices = [];
+            
+            for (let i = 0; i < targetGrid.length; i++) {
+                if (targetGrid[i] === 1) {
+                    patternIndices.push(i);
+                    if (grid[i] === 1) correctCount++;
+                }
+            }
+            
+            const orderPercent = Math.round((correctCount / patternIndices.length) * 100);
+            orderEl.textContent = orderPercent + '%';
+            
+            if (orderPercent >= 80) {
+                orderEl.classList.add('good');
+            } else {
+                orderEl.classList.remove('good');
+            }
+            
+            workEl.textContent = workCount;
+            swapsEl.textContent = swapCount;
+        }
+
+        function gameLoop() {
+            if (Math.random() < temperature * 0.1) {
+                randomSwap();
+            }
+        }
+
+        resetBtn.addEventListener('click', init);
+        
+        pauseBtn.addEventListener('click', () => {
+            isPaused = !isPaused;
+            pauseBtn.textContent = isPaused ? 'Resume' : 'Pause';
+        });
+        
+        tempSlider.addEventListener('input', (e) => {
+            temperature = parseInt(e.target.value);
+            tempValue.textContent = temperature;
+        });
+
+        init();
+        setInterval(gameLoop, 100);
+    </script>
+</body>
+</html>

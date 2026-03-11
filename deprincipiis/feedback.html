@@ -3,8 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feedback Loops</title>
+    <title>Feedback Loops — De Principiis</title>
     <style>
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f0f0f0;
+            --text-primary: #2a2a2a;
+            --text-secondary: #555555;
+            --text-muted: #888888;
+            --accent: #4a7ab0;
+            --accent-hover: #3d6a9c;
+            --border: #e0e0e0;
+            --shadow: rgba(0, 0, 0, 0.08);
+            --canvas-bg: #f5f5f5;
+            --positive: #4CAF50;
+            --negative: #e07070;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #1c2a4a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #bbbbbb;
+            --text-muted: #888888;
+            --accent: #7faadb;
+            --accent-hover: #9bc0eb;
+            --border: #2a3a5e;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --canvas-bg: #16213e;
+            --positive: #70e070;
+            --negative: #e07070;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,69 +44,124 @@
         }
 
         body {
-            background: #1a1a2e;
+            background: var(--bg-primary);
             min-height: 100vh;
-            font-family: Georgia, serif;
-            color: #e0e0e0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            font-family: Georgia, 'Times New Roman', serif;
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
             padding: 40px 20px;
         }
 
-        h1 {
-            color: #7faadb;
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px var(--shadow);
+            z-index: 100;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-tertiary);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .breadcrumb {
+            font-size: 0.9rem;
+            color: var(--text-muted);
             margin-bottom: 10px;
+        }
+
+        .breadcrumb a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        h1 {
+            font-size: 2rem;
             font-weight: normal;
+            color: var(--accent);
+            margin-bottom: 8px;
         }
 
         .subtitle {
-            color: #888;
-            margin-bottom: 30px;
             font-style: italic;
+            color: var(--text-muted);
+            font-size: 1rem;
         }
 
-        .explanation {
-            max-width: 700px;
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .description {
+            max-width: 650px;
             text-align: center;
-            line-height: 1.6;
-            color: #bbb;
-            margin-bottom: 30px;
+            color: var(--text-secondary);
         }
 
-        .canvas-container {
-            position: relative;
-            margin-bottom: 30px;
+        .simulation-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px var(--shadow);
         }
 
         canvas {
-            background: #16213e;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            display: block;
+            border-radius: 8px;
         }
 
-        .controls {
+        .controls-area {
             display: flex;
-            gap: 30px;
-            align-items: flex-start;
+            gap: 20px;
             flex-wrap: wrap;
             justify-content: center;
         }
 
-        .control-group {
-            background: #16213e;
+        .controls {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
             padding: 20px;
-            border-radius: 10px;
-            min-width: 200px;
+            box-shadow: 0 4px 12px var(--shadow);
+            min-width: 220px;
         }
 
-        .control-group h3 {
-            color: #7faadb;
-            font-size: 14px;
-            margin-bottom: 15px;
-            font-weight: normal;
+        .controls-header {
+            font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 1px;
+            color: var(--accent);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
         }
 
         .arrow-control {
@@ -85,8 +172,9 @@
         }
 
         .arrow-label {
-            min-width: 80px;
-            color: #888;
+            min-width: 60px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
         }
 
         .sign-toggle {
@@ -100,63 +188,73 @@
             font-size: 24px;
             font-weight: bold;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .sign-toggle button.pos {
+            background: var(--bg-tertiary);
+            color: var(--positive);
+        }
+
+        .sign-toggle button.pos.active {
+            background: var(--positive);
+            color: white;
+        }
+
+        .sign-toggle button.neg {
+            background: var(--bg-tertiary);
+            color: var(--negative);
+        }
+
+        .sign-toggle button.neg.active {
+            background: var(--negative);
+            color: white;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .sign-toggle button.positive {
-            background: #2a4a2a;
-            color: #70e070;
-        }
-
-        .sign-toggle button.positive.active {
-            background: #70e070;
-            color: #1a1a2e;
-        }
-
-        .sign-toggle button.negative {
-            background: #4a2a2a;
-            color: #e07070;
-        }
-
-        .sign-toggle button.negative.active {
-            background: #e07070;
-            color: #1a1a2e;
-        }
-
-        .main-controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .main-controls button {
-            padding: 10px 25px;
-            font-size: 14px;
-            font-family: Georgia, serif;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .main-controls button.start {
-            background: #4a7ab0;
+        .btn-primary {
+            background: var(--accent);
             color: white;
         }
 
-        .main-controls button.start:hover {
-            background: #5a8ac0;
+        .btn-primary:hover {
+            background: var(--accent-hover);
         }
 
-        .main-controls button.reset {
-            background: #705070;
-            color: white;
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
         }
 
-        .main-controls button.reset:hover {
-            background: #806080;
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
         }
 
         .presets {
@@ -166,118 +264,211 @@
         }
 
         .presets button {
-            padding: 8px 15px;
-            font-size: 13px;
-            font-family: Georgia, serif;
-            background: #2a3a5e;
-            color: #7faadb;
-            border: none;
-            border-radius: 5px;
+            padding: 10px 15px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            background: var(--bg-tertiary);
+            color: var(--accent);
+            border: 1px solid var(--border);
+            border-radius: 6px;
             cursor: pointer;
             text-align: left;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
 
         .presets button:hover {
-            background: #3a4a6e;
+            background: var(--border);
         }
 
-        .status {
-            color: #888;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-
-        .behavior {
-            margin-top: 20px;
-            padding: 15px;
-            background: #0d1421;
-            border-radius: 8px;
-            max-width: 700px;
+        .behavior-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px var(--shadow);
+            max-width: 650px;
             text-align: center;
         }
 
         .behavior-title {
-            color: #7faadb;
-            font-size: 16px;
-            margin-bottom: 8px;
+            color: var(--accent);
+            font-size: 1.1rem;
+            margin-bottom: 10px;
         }
 
         .behavior-desc {
-            color: #888;
-            font-size: 14px;
-            line-height: 1.5;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 700px) {
+            .controls-area {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .controls {
+                width: 100%;
+                max-width: 300px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Feedback Loops</h1>
-    <p class="subtitle">Why some systems explode and others stabilize</p>
-    
-    <p class="explanation">
-        Two variables influence each other. Click the + or − to change whether each 
-        influence amplifies or dampens. Watch how the system behaves.
-    </p>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <span id="theme-icon">☀️</span> <span id="theme-label">Light</span>
+    </button>
 
-    <div class="canvas-container">
-        <canvas id="canvas" width="600" height="350"></canvas>
-    </div>
+    <div class="container">
+        <header>
+            <div class="breadcrumb">
+                <a href="index.html">De Principiis</a> → Feedback Loops
+            </div>
+            <h1>Feedback Loops</h1>
+            <p class="subtitle">Why some systems explode and others stabilize</p>
+        </header>
 
-    <div class="controls">
-        <div class="control-group">
-            <h3>Connections</h3>
-            <div class="arrow-control">
-                <span class="arrow-label">A → B</span>
-                <div class="sign-toggle">
-                    <button class="positive active" id="abPlus">+</button>
-                    <button class="negative" id="abMinus">−</button>
+        <main class="main-content">
+            <p class="description">
+                Two variables influence each other. Click the + or − to change whether each 
+                influence amplifies or dampens. Watch how the system behaves.
+            </p>
+
+            <div class="simulation-container">
+                <canvas id="canvas" width="600" height="350"></canvas>
+            </div>
+
+            <div class="controls-area">
+                <div class="controls">
+                    <div class="controls-header">Connections</div>
+                    <div class="arrow-control">
+                        <span class="arrow-label">A → B</span>
+                        <div class="sign-toggle">
+                            <button class="pos active" id="abPlus">+</button>
+                            <button class="neg" id="abMinus">−</button>
+                        </div>
+                    </div>
+                    <div class="arrow-control">
+                        <span class="arrow-label">B → A</span>
+                        <div class="sign-toggle">
+                            <button class="pos active" id="baPlus">+</button>
+                            <button class="neg" id="baMinus">−</button>
+                        </div>
+                    </div>
+                    <div class="buttons">
+                        <button class="btn btn-primary" id="startStop">Start</button>
+                        <button class="btn btn-secondary" id="reset">Reset</button>
+                    </div>
+                    <div class="status">
+                        <span id="loopType">Loop type: Reinforcing (+ +)</span>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <div class="controls-header">Presets</div>
+                    <div class="presets">
+                        <button id="preset1">Reinforcing (+ +) — runaway growth</button>
+                        <button id="preset2">Balancing (+ −) — oscillation</button>
+                        <button id="preset3">Balancing (− +) — oscillation</button>
+                        <button id="preset4">Dampening (− −) — decay to zero</button>
+                    </div>
                 </div>
             </div>
-            <div class="arrow-control">
-                <span class="arrow-label">B → A</span>
-                <div class="sign-toggle">
-                    <button class="positive active" id="baPlus">+</button>
-                    <button class="negative" id="baMinus">−</button>
+
+            <div class="behavior-box" id="behaviorBox">
+                <div class="behavior-title" id="behaviorTitle">Reinforcing Loop</div>
+                <div class="behavior-desc" id="behaviorDesc">
+                    Both connections amplify. More A leads to more B, which leads to more A. 
+                    Runaway growth (or collapse if values go negative). Examples: compound interest, 
+                    viral spread, arms races, bank runs.
                 </div>
             </div>
-            <div class="main-controls">
-                <button class="start" id="startStop">Start</button>
-                <button class="reset" id="reset">Reset</button>
-            </div>
-            <div class="status">
-                <span id="loopType">Loop type: Reinforcing (+ +)</span>
-            </div>
-        </div>
+        </main>
 
-        <div class="control-group">
-            <h3>Presets</h3>
-            <div class="presets">
-                <button id="preset1">Reinforcing (+ +) — runaway growth</button>
-                <button id="preset2">Balancing (+ −) — oscillation</button>
-                <button id="preset3">Balancing (− +) — oscillation</button>
-                <button id="preset4">Dampening (− −) — decay to zero</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="behavior" id="behaviorBox">
-        <div class="behavior-title" id="behaviorTitle">Reinforcing Loop</div>
-        <div class="behavior-desc" id="behaviorDesc">
-            Both connections amplify. More A leads to more B, which leads to more A. 
-            Runaway growth (or collapse if values go negative). Examples: compound interest, 
-            viral spread, arms races, bank runs.
-        </div>
+        <footer>
+            <p><a href="index.html">← Back to De Principiis</a></p>
+        </footer>
     </div>
 
     <script>
+        // Theme handling
+        function initTheme() {
+            const saved = localStorage.getItem('deprincipiis-theme');
+            if (saved === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                updateThemeUI('dark');
+            }
+            updateCanvasColors();
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            
+            if (next === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+            
+            localStorage.setItem('deprincipiis-theme', next);
+            updateThemeUI(next);
+            updateCanvasColors();
+            draw();
+        }
+
+        function updateThemeUI(theme) {
+            document.getElementById('theme-icon').textContent = theme === 'dark' ? '🌙' : '☀️';
+            document.getElementById('theme-label').textContent = theme === 'dark' ? 'Dark' : 'Light';
+        }
+
+        let canvasColors = {};
+
+        function updateCanvasColors() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            canvasColors = isDark ? {
+                bg: '#16213e',
+                text: '#ffffff',
+                muted: '#888888',
+                positive: '#70e070',
+                negative: '#e07070'
+            } : {
+                bg: '#f5f5f5',
+                text: '#2a2a2a',
+                muted: '#888888',
+                positive: '#4CAF50',
+                negative: '#e07070'
+            };
+        }
+
+        initTheme();
+
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
 
-        // State
         let running = false;
         let valueA = 50;
         let valueB = 50;
-        let signAB = 1;  // +1 or -1
+        let signAB = 1;
         let signBA = 1;
         const baseRadius = 30;
         const maxRadius = 80;
@@ -286,44 +477,32 @@
         const leftX = 180;
         const rightX = 420;
 
-        // Color gradient: cool (small) to warm (large)
-        // Small = blue/teal, Large = orange/red
         function getColorForValue(value) {
-            // Normalize value: 0-100 maps to cool-warm
             const t = Math.max(0, Math.min(1, (value - 10) / 120));
-            
-            // Cool: teal/blue (70, 180, 180)
-            // Warm: orange/red (230, 120, 70)
             const r = Math.floor(70 + (230 - 70) * t);
             const g = Math.floor(180 + (120 - 180) * t);
             const b = Math.floor(180 + (70 - 180) * t);
-            
             return `rgb(${r}, ${g}, ${b})`;
         }
 
         function getStrokeForValue(value) {
             const t = Math.max(0, Math.min(1, (value - 10) / 120));
-            
-            // Stroke: lighter versions
             const r = Math.floor(100 + (255 - 100) * t);
             const g = Math.floor(200 + (150 - 200) * t);
             const b = Math.floor(200 + (100 - 200) * t);
-            
             return `rgb(${r}, ${g}, ${b})`;
         }
 
         function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = canvasColors.bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Calculate radii based on values
             const radiusA = Math.max(minRadius, Math.min(maxRadius, baseRadius + (valueA - 50) * 0.8));
             const radiusB = Math.max(minRadius, Math.min(maxRadius, baseRadius + (valueB - 50) * 0.8));
 
-            // Draw arrows - top curves up, bottom curves down for circular flow
-            drawArrow(leftX + radiusA + 20, centerY - 30, rightX - radiusB - 20, centerY - 30, signAB, -1);  // top: curves up
-            drawArrow(rightX - radiusB - 20, centerY + 30, leftX + radiusA + 20, centerY + 30, signBA, 1);   // bottom: curves down
+            drawArrow(leftX + radiusA + 20, centerY - 30, rightX - radiusB - 20, centerY - 30, signAB, -1);
+            drawArrow(rightX - radiusB - 20, centerY + 30, leftX + radiusA + 20, centerY + 30, signBA, 1);
 
-            // Draw circles with temperature-based colors
             ctx.beginPath();
             ctx.arc(leftX, centerY, radiusA, 0, Math.PI * 2);
             ctx.fillStyle = getColorForValue(valueA);
@@ -340,34 +519,26 @@
             ctx.lineWidth = 3;
             ctx.stroke();
 
-            // Labels
-            ctx.fillStyle = '#fff';
+            ctx.fillStyle = canvasColors.text;
             ctx.font = 'bold 24px Georgia';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('A', leftX, centerY);
             ctx.fillText('B', rightX, centerY);
 
-            // Values
             ctx.font = '14px Georgia';
-            ctx.fillStyle = '#888';
+            ctx.fillStyle = canvasColors.muted;
             ctx.fillText(valueA.toFixed(0), leftX, centerY + radiusA + 20);
             ctx.fillText(valueB.toFixed(0), rightX, centerY + radiusB + 20);
         }
 
         function drawArrow(fromX, fromY, toX, toY, sign, curveDirection) {
             const headLen = 15;
-            const dx = toX - fromX;
-            const dy = toY - fromY;
-            const angle = Math.atan2(dy, dx);
-
-            // Arrow color based on sign
-            const color = sign > 0 ? '#70e070' : '#e07070';
+            const color = sign > 0 ? canvasColors.positive : canvasColors.negative;
             ctx.strokeStyle = color;
             ctx.fillStyle = color;
             ctx.lineWidth = 3;
 
-            // Curve the arrow - curveDirection: -1 = up, 1 = down
             const midX = (fromX + toX) / 2;
             const midY = (fromY + toY) / 2 + (curveDirection * 25);
 
@@ -376,7 +547,6 @@
             ctx.quadraticCurveTo(midX, midY, toX, toY);
             ctx.stroke();
 
-            // Arrowhead - calculate angle at the end of the curve
             const endAngle = Math.atan2(toY - midY, toX - midX);
             ctx.beginPath();
             ctx.moveTo(toX, toY);
@@ -385,7 +555,6 @@
             ctx.closePath();
             ctx.fill();
 
-            // Sign label
             ctx.font = 'bold 20px Georgia';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -394,7 +563,6 @@
         }
 
         function step() {
-            // Simple feedback dynamics
             const feedbackStrength = 0.03;
             const deltaA = signBA * (valueB - 50) * feedbackStrength;
             const deltaB = signAB * (valueA - 50) * feedbackStrength;
@@ -402,7 +570,6 @@
             valueA = Math.max(1, Math.min(150, valueA + deltaA));
             valueB = Math.max(1, Math.min(150, valueB + deltaB));
 
-            // Small nudge if both at 50 to start movement
             if (Math.abs(valueA - 50) < 1 && Math.abs(valueB - 50) < 1) {
                 valueA += 2;
             }
@@ -441,7 +608,6 @@
             draw();
         }
 
-        // Event listeners
         document.getElementById('startStop').addEventListener('click', () => {
             running = !running;
             document.getElementById('startStop').textContent = running ? 'Pause' : 'Start';
@@ -454,7 +620,6 @@
             reset();
         });
 
-        // Sign toggles
         function setupToggle(plusId, minusId, callback) {
             const plus = document.getElementById(plusId);
             const minus = document.getElementById(minusId);
@@ -479,7 +644,6 @@
         setupToggle('abPlus', 'abMinus', (v) => signAB = v);
         setupToggle('baPlus', 'baMinus', (v) => signBA = v);
 
-        // Presets
         function setPreset(ab, ba) {
             signAB = ab;
             signBA = ba;
@@ -498,7 +662,6 @@
         document.getElementById('preset3').addEventListener('click', () => setPreset(-1, 1));
         document.getElementById('preset4').addEventListener('click', () => setPreset(-1, -1));
 
-        // Initial draw
         draw();
         updateBehavior();
     </script>

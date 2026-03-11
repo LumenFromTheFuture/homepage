@@ -3,8 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nailboard Simulation</title>
+    <title>The Structure of Randomness — De Principiis</title>
     <style>
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f0f0f0;
+            --text-primary: #2a2a2a;
+            --text-secondary: #555555;
+            --text-muted: #888888;
+            --accent: #4a7ab0;
+            --accent-hover: #3d6a9c;
+            --border: #e0e0e0;
+            --shadow: rgba(0, 0, 0, 0.08);
+            --canvas-bg: #f5f5f5;
+            --positive: #4CAF50;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #1c2a4a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #bbbbbb;
+            --text-muted: #888888;
+            --accent: #7faadb;
+            --accent-hover: #9bc0eb;
+            --border: #2a3a5e;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --canvas-bg: #16213e;
+            --positive: #4CAF50;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,153 +42,401 @@
         }
 
         body {
-            background: #1a1a2e;
+            background: var(--bg-primary);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: Arial, sans-serif;
+            font-family: Georgia, 'Times New Roman', serif;
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background 0.3s, color 0.3s;
         }
 
-        .main-container {
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px var(--shadow);
+            z-index: 100;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-tertiary);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .breadcrumb {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .breadcrumb a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: normal;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-style: italic;
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .description {
+            max-width: 650px;
+            margin: 0 auto 30px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .main-content {
             display: flex;
-            gap: 20px;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .simulation-area {
+            display: flex;
+            gap: 25px;
             align-items: flex-start;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .canvas-container {
-            position: relative;
-        }
-
-        .control-panel {
-            background: #16213e;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            min-width: 180px;
-        }
-
-        .control-panel h3 {
-            color: #4a7ab0;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 5px;
-        }
-
-        #dropButton {
-            padding: 15px 30px;
-            font-size: 16px;
-            font-weight: bold;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        #dropButton:hover {
-            background: #45a049;
-        }
-
-        #dropButton:disabled {
-            background: #666;
-            cursor: not-allowed;
-        }
-
-        .slider-container {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .slider-container label {
-            color: #7faadb;
-            font-size: 14px;
-        }
-
-        .slider-container input[type="range"] {
-            width: 100%;
-            cursor: pointer;
-        }
-
-        .slider-value {
-            color: #4CAF50;
-            font-weight: bold;
-            font-size: 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 12px var(--shadow);
         }
 
         canvas {
             display: block;
-            background: #16213e;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+        }
+
+        .controls {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px var(--shadow);
+            min-width: 220px;
+        }
+
+        .controls-header {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .control-value {
+            color: var(--positive);
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--bg-tertiary);
+            appearance: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .btn-primary {
+            background: var(--positive);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.1);
         }
 
         .stats {
-            color: #7faadb;
-            font-size: 14px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
         }
 
-        .stats div {
-            margin: 5px 0;
+        .stats-header {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: var(--text-primary);
+            font-family: monospace;
+        }
+
+        .stat-divider {
+            margin: 10px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 750px) {
+            .simulation-area {
+                flex-direction: column;
+            }
+
+            .controls {
+                width: 100%;
+                max-width: 350px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="main-container">
-        <div class="canvas-container">
-            <canvas id="canvas" width="600" height="800"></canvas>
-        </div>
-        <div class="control-panel">
-            <h3>Controls</h3>
-            <button id="dropButton">Drop Balls</button>
-            <div class="slider-container">
-                <label>Number of Balls: <span id="ballSliderValue" class="slider-value">300</span></label>
-                <input type="range" id="ballSlider" min="1" max="400" value="300">
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <span id="theme-icon">☀️</span> <span id="theme-label">Light</span>
+    </button>
+
+    <div class="container">
+        <header>
+            <div class="breadcrumb">
+                <a href="index.html">De Principiis</a> → The Structure of Randomness
             </div>
-            <h3>Physics</h3>
-            <div class="slider-container">
-                <label>Gravity: <span id="gravityValue" class="slider-value">0.35</span></label>
-                <input type="range" id="gravitySlider" min="0.01" max="0.5" step="0.01" value="0.35">
-            </div>
-            <div class="slider-container">
-                <label>Friction: <span id="frictionValue" class="slider-value">0.80</span></label>
-                <input type="range" id="frictionSlider" min="0" max="1" step="0.05" value="0.8">
-            </div>
-            <div class="slider-container">
-                <label>Bounce: <span id="bounceValue" class="slider-value">0.8</span></label>
-                <input type="range" id="bounceSlider" min="0.1" max="0.9" step="0.05" value="0.8">
-            </div>
-            <div class="stats">
-                <h3>Statistics</h3>
-                <div>Balls: <span id="ballCount">0</span></div>
-                <div>In bins: <span id="binCount">0</span></div>
-                <div>Beyond bins: <span id="beyondCount">0</span></div>
-                <div style="margin-top: 10px; border-top: 1px solid #4a7ab0; padding-top: 10px;">
-                    <div>Left (1-5): <span id="leftPct">0%</span></div>
-                    <div>Center (6-8): <span id="centerPct">0%</span></div>
-                    <div>Right (9-13): <span id="rightPct">0%</span></div>
+            <h1>The Structure of Randomness</h1>
+            <p class="subtitle">Why individual unpredictability produces collective order</p>
+        </header>
+
+        <main class="main-content">
+            <p class="description">
+                Each ball's path through the nails is random, but the final distribution is 
+                inevitable — the signature of the normal curve. Order emerges from chaos.
+            </p>
+
+            <div class="simulation-area">
+                <div class="canvas-container">
+                    <canvas id="canvas" width="600" height="800"></canvas>
+                </div>
+
+                <div class="controls">
+                    <div class="controls-header">Controls</div>
+                    
+                    <button id="dropButton" class="btn btn-primary">Drop Balls</button>
+
+                    <div class="control-group">
+                        <label>Number of Balls: <span id="ballSliderValue" class="control-value">300</span></label>
+                        <input type="range" id="ballSlider" min="1" max="400" value="300">
+                    </div>
+
+                    <div class="controls-header">Physics</div>
+
+                    <div class="control-group">
+                        <label>Gravity: <span id="gravityValue" class="control-value">0.35</span></label>
+                        <input type="range" id="gravitySlider" min="0.01" max="0.5" step="0.01" value="0.35">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Friction: <span id="frictionValue" class="control-value">0.80</span></label>
+                        <input type="range" id="frictionSlider" min="0" max="1" step="0.05" value="0.8">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Bounce: <span id="bounceValue" class="control-value">0.8</span></label>
+                        <input type="range" id="bounceSlider" min="0.1" max="0.9" step="0.05" value="0.8">
+                    </div>
+
+                    <div class="stats">
+                        <div class="stats-header">Statistics</div>
+                        <div class="stat-row">
+                            <span>Balls:</span>
+                            <span class="stat-value" id="ballCount">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>In bins:</span>
+                            <span class="stat-value" id="binCount">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>Beyond bins:</span>
+                            <span class="stat-value" id="beyondCount">0</span>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-row">
+                            <span>Left (1-5):</span>
+                            <span class="stat-value" id="leftPct">0%</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>Center (6-8):</span>
+                            <span class="stat-value" id="centerPct">0%</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>Right (9-13):</span>
+                            <span class="stat-value" id="rightPct">0%</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </main>
+
+        <footer>
+            <p><a href="index.html">← Back to De Principiis</a></p>
+        </footer>
     </div>
 
     <script>
+        // Theme handling
+        function initTheme() {
+            const saved = localStorage.getItem('deprincipiis-theme');
+            if (saved === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                updateThemeUI('dark');
+            }
+            updateCanvasColors();
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            
+            if (next === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+            
+            localStorage.setItem('deprincipiis-theme', next);
+            updateThemeUI(next);
+            updateCanvasColors();
+        }
+
+        function updateThemeUI(theme) {
+            document.getElementById('theme-icon').textContent = theme === 'dark' ? '🌙' : '☀️';
+            document.getElementById('theme-label').textContent = theme === 'dark' ? 'Dark' : 'Light';
+        }
+
+        // Canvas colors that adapt to theme
+        let canvasColors = {
+            bg: '#f5f5f5',
+            structure: '#4a7ab0',
+            nail: '#c0c0c0',
+            door: '#6a9ad0',
+            doorHinge: '#8ab4e8'
+        };
+
+        function updateCanvasColors() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            canvasColors = isDark ? {
+                bg: '#16213e',
+                structure: '#4a7ab0',
+                nail: '#c0c0c0',
+                door: '#6a9ad0',
+                doorHinge: '#8ab4e8'
+            } : {
+                bg: '#f5f5f5',
+                structure: '#4a7ab0',
+                nail: '#a0a0a0',
+                door: '#5a8ac0',
+                doorHinge: '#7aa4d8'
+            };
+        }
+
+        initTheme();
+
         // ======================
         // Minimalist 2D Physics Engine
         // ======================
         const Physics = {
-            // Configuration
             gravity: 0.35,
-            friction: 0.92,  // Internal value: 1.0 = no friction, 0.9 = max friction (slider 0.8 -> 0.92)
+            friction: 0.92,
             bounce: 0.8,
 
-            // Vector operations
             distance(x1, y1, x2, y2) {
                 const dx = x1 - x2;
                 const dy = y1 - y2;
@@ -174,24 +452,20 @@
                 return vx * nx + vy * ny;
             },
 
-            // Apply gravity to a ball
             applyGravity(ball) {
                 ball.vy += this.gravity;
             },
 
-            // Apply friction to a ball
             applyFriction(ball) {
                 ball.vx *= this.friction;
                 ball.vy *= this.friction;
             },
 
-            // Integrate position from velocity
             integrate(ball) {
                 ball.x += ball.vx;
                 ball.y += ball.vy;
             },
 
-            // Constrain ball within rectangular bounds, returns which sides were hit
             constrainToRect(ball, radius, left, top, right, bottom) {
                 const hits = { left: false, right: false, top: false, bottom: false };
 
@@ -219,7 +493,6 @@
                 return hits;
             },
 
-            // Resolve collision between ball and static circle (nail)
             collideWithCircle(ball, ballRadius, cx, cy, circleRadius, options = {}) {
                 const dx = ball.x - cx;
                 const dy = ball.y - cy;
@@ -228,19 +501,15 @@
 
                 if (dist < minDist && dist > 0) {
                     const n = this.normalize(dx, dy);
-
-                    // Push ball out
                     ball.x = cx + n.x * minDist;
                     ball.y = cy + n.y * minDist;
 
-                    // Reflect velocity
                     const dot = this.dot(ball.vx, ball.vy, n.x, n.y);
                     ball.vx -= 2 * dot * n.x;
                     ball.vy -= 2 * dot * n.y;
                     ball.vx *= this.bounce;
                     ball.vy *= this.bounce;
 
-                    // Optional random nudge
                     if (options.randomNudge) {
                         ball.vx += (Math.random() < 0.5 ? -1 : 1) * options.randomNudge;
                     }
@@ -250,7 +519,6 @@
                 return false;
             },
 
-            // Resolve collision between two balls
             collideBalls(ball1, ball2, radius, options = {}) {
                 const dx = ball1.x - ball2.x;
                 const dy = ball1.y - ball2.y;
@@ -262,7 +530,6 @@
                     const overlap = minDist - dist;
 
                     if (options.ball2Static) {
-                        // Ball2 is static - only move ball1
                         ball1.x += n.x * overlap;
                         ball1.y += n.y * overlap;
 
@@ -272,13 +539,11 @@
                         ball1.vx *= this.bounce;
                         ball1.vy *= this.bounce;
                     } else {
-                        // Both balls movable - share separation
                         ball1.x += n.x * overlap * 0.5;
                         ball1.y += n.y * overlap * 0.5;
                         ball2.x -= n.x * overlap * 0.5;
                         ball2.y -= n.y * overlap * 0.5;
 
-                        // Velocity exchange
                         const dvx = ball1.vx - ball2.vx;
                         const dvy = ball1.vy - ball2.vy;
                         const dot = this.dot(dvx, dvy, n.x, n.y);
@@ -296,28 +561,13 @@
                 return false;
             },
 
-            // Check if ball is nearly stopped
             isSettled(ball, threshold = 0.1) {
                 return Math.abs(ball.vx) < threshold && Math.abs(ball.vy) < threshold;
             },
 
-            // Stop ball completely
             stop(ball) {
                 ball.vx = 0;
                 ball.vy = 0;
-            },
-
-            // Check if ball1 has a supporting ball below it
-            hasSupport(ball, allBalls, radius, margin = 0.2) {
-                for (const other of allBalls) {
-                    if (other === ball) continue;
-                    const dist = this.distance(ball.x, ball.y, other.x, other.y);
-                    const dy = ball.y - other.y;
-                    if (dist < radius * 2 * (1 + margin) && dy < 0) {
-                        return true;
-                    }
-                }
-                return false;
             }
         };
 
@@ -342,13 +592,11 @@
         const bounceSlider = document.getElementById('bounceSlider');
         const bounceValue = document.getElementById('bounceValue');
 
-        // Configuration
         const NAIL_RADIUS = 8;
         const BALL_RADIUS = 5;
         const NUM_ROWS = 10;
-        const NUM_BINS = 13;  // 11 center bins + 2 outer bins
+        const NUM_BINS = 13;
 
-        // Layout dimensions
         const NAILBOARD_WIDTH = 500;
         const NAILBOARD_X = (canvas.width - NAILBOARD_WIDTH) / 2;
 
@@ -361,31 +609,25 @@
         const NAILBOARD_TOP = RESERVOIR_TOP + RESERVOIR_HEIGHT + 30;
         const NAILBOARD_HEIGHT = 400;
 
-        // Bin dimensions - bins extend beyond nailboard to catch edge balls
-        const BIN_WIDTH = NAILBOARD_WIDTH / 11;  // Keep original bin width
-        const BIN_AREA_X = NAILBOARD_X - BIN_WIDTH;  // Start one bin-width to the left
+        const BIN_WIDTH = NAILBOARD_WIDTH / 11;
+        const BIN_AREA_X = NAILBOARD_X - BIN_WIDTH;
         const BIN_TOP = NAILBOARD_TOP + NAILBOARD_HEIGHT + 10;
         const BIN_HEIGHT = 200;
 
-        // Door configuration
         const DOOR_WIDTH = 8;
         const CENTER_X = canvas.width / 2;
         const DOOR_LEFT = CENTER_X - DOOR_WIDTH;
         const DOOR_RIGHT = CENTER_X + DOOR_WIDTH;
         const RESERVOIR_BOTTOM = RESERVOIR_TOP + RESERVOIR_HEIGHT;
 
-        // State
         let balls = [];
         let nails = [];
         let doorsOpen = false;
         let doorAngle = 0;
         const DOOR_MAX_ANGLE = Math.PI / 2;
         let numBalls = 300;
-        let binCounts = new Array(NUM_BINS).fill(0);  // Track balls per bin
+        let binCounts = new Array(NUM_BINS).fill(0);
 
-        // ======================
-        // Initialization
-        // ======================
         function initBalls() {
             balls = [];
             const spacing = BALL_RADIUS * 2.2;
@@ -397,7 +639,6 @@
                 const x = RESERVOIR_X + 10 + BALL_RADIUS + col * spacing;
                 let y = RESERVOIR_TOP + 10 + BALL_RADIUS + row * spacing;
 
-                // Ensure ball stays above the slant
                 const slantY = getSlantY(x);
                 if (y + BALL_RADIUS > slantY) {
                     y = slantY - BALL_RADIUS;
@@ -434,12 +675,8 @@
             }
         }
 
-        // ======================
-        // Geometry Helpers
-        // ======================
         function getBinIndex(x) {
             const binIdx = Math.floor((x - BIN_AREA_X) / BIN_WIDTH);
-            // Return -1 if outside bin area (don't clamp)
             if (binIdx < 0 || binIdx >= NUM_BINS) return -1;
             return binIdx;
         }
@@ -451,11 +688,8 @@
             return RESERVOIR_BOTTOM - SLANT_HEIGHT * ratio;
         }
 
-        // ======================
-        // Drawing Functions
-        // ======================
         function drawReservoir() {
-            ctx.strokeStyle = '#4a7ab0';
+            ctx.strokeStyle = canvasColors.structure;
             ctx.lineWidth = 3;
 
             const edgeY = RESERVOIR_BOTTOM - SLANT_HEIGHT;
@@ -486,7 +720,7 @@
             ctx.stroke();
 
             ctx.lineWidth = 4;
-            ctx.strokeStyle = '#6a9ad0';
+            ctx.strokeStyle = canvasColors.door;
 
             const doorLen = DOOR_WIDTH;
             ctx.beginPath();
@@ -499,7 +733,7 @@
             ctx.lineTo(DOOR_RIGHT - Math.cos(doorAngle) * doorLen, RESERVOIR_BOTTOM + Math.sin(doorAngle) * doorLen);
             ctx.stroke();
 
-            ctx.fillStyle = '#8ab4e8';
+            ctx.fillStyle = canvasColors.doorHinge;
             ctx.beginPath();
             ctx.arc(DOOR_LEFT, RESERVOIR_BOTTOM, 4, 0, Math.PI * 2);
             ctx.arc(DOOR_RIGHT, RESERVOIR_BOTTOM, 4, 0, Math.PI * 2);
@@ -507,7 +741,7 @@
         }
 
         function drawNails() {
-            ctx.fillStyle = '#c0c0c0';
+            ctx.fillStyle = canvasColors.nail;
             for (const nail of nails) {
                 ctx.beginPath();
                 ctx.arc(nail.x, nail.y, NAIL_RADIUS, 0, Math.PI * 2);
@@ -516,7 +750,7 @@
         }
 
         function drawBins() {
-            ctx.strokeStyle = '#4a7ab0';
+            ctx.strokeStyle = canvasColors.structure;
             ctx.lineWidth = 2;
 
             for (let i = 0; i <= NUM_BINS; i++) {
@@ -547,9 +781,6 @@
             }
         }
 
-        // ======================
-        // Physics Update
-        // ======================
         function isTouchingRestingBallTowardCenter(ball) {
             for (const other of balls) {
                 if (other === ball || !other.resting || other.inBin) continue;
@@ -588,14 +819,11 @@
             for (const ball of balls) {
                 if (!ball.inBin) continue;
 
-                // On floor - always stable
                 const onFloor = ball.y + BALL_RADIUS >= binBottom - 1;
                 if (onFloor) continue;
 
-                // Determine bin boundaries
                 const idx = getBinIndex(ball.x);
 
-                // Ball drifted outside bins - wake it up
                 if (idx === -1) {
                     ball.inBin = false;
                     ball.beyondBins = true;
@@ -605,27 +833,21 @@
                 const binLeft = BIN_AREA_X + idx * BIN_WIDTH;
                 const binRight = binLeft + BIN_WIDTH;
 
-                // Check for support from left and right sides
                 let leftSupport = ball.x - BALL_RADIUS <= binLeft + 1;
                 let rightSupport = ball.x + BALL_RADIUS >= binRight - 1;
 
-                // Check for ball support from below
                 for (const other of balls) {
                     if (other === ball) continue;
                     const dx = ball.x - other.x;
                     const dy = ball.y - other.y;
                     const dist = Physics.distance(ball.x, ball.y, other.x, other.y);
 
-                    // Other ball is below and touching
                     if (dist < BALL_RADIUS * 2.2 && dy < 0) {
-                        // Ball provides left support if it's to the left of this ball's center
                         if (dx > BALL_RADIUS * 0.3) leftSupport = true;
-                        // Ball provides right support if it's to the right of this ball's center
                         if (dx < -BALL_RADIUS * 0.3) rightSupport = true;
                     }
                 }
 
-                // Not stable (missing support from one side) - wake up to roll
                 if (!leftSupport || !rightSupport) {
                     ball.inBin = false;
                 }
@@ -633,12 +855,10 @@
         }
 
         function updateReservoirPhysics(ball) {
-            // Wall collisions (top and sides only)
             Physics.constrainToRect(ball, BALL_RADIUS,
                 RESERVOIR_X, RESERVOIR_TOP,
                 RESERVOIR_X + RESERVOIR_WIDTH, Infinity);
 
-            // Slant collision
             const slantY = getSlantY(ball.x);
             let onSurface = false;
 
@@ -651,7 +871,6 @@
                     ball.y = slantY - BALL_RADIUS;
                     onSurface = true;
 
-                    // Roll toward center
                     const rollForce = 0.12;
                     if (ball.x < CENTER_X) {
                         ball.vx += rollForce;
@@ -662,7 +881,6 @@
                 }
             }
 
-            // Check if should rest
             if (onSurface) {
                 const nearCenter = Math.abs(ball.x - CENTER_X) < BALL_RADIUS * 3;
                 const canRest = nearCenter || isTouchingRestingBallTowardCenter(ball);
@@ -675,20 +893,16 @@
         }
 
         function updateNailboardPhysics(ball) {
-            // Nail collisions
             for (const nail of nails) {
                 Physics.collideWithCircle(ball, BALL_RADIUS, nail.x, nail.y, NAIL_RADIUS, {
                     randomNudge: 1.5
                 });
             }
-
-            // No side walls - balls can escape to outer bins
         }
 
         function updateBinPhysics(ball) {
             const idx = getBinIndex(ball.x);
 
-            // Ball is beyond the bins - let it fall freely
             if (idx === -1) {
                 ball.beyondBins = true;
                 return;
@@ -698,10 +912,8 @@
             const binRight = binLeft + BIN_WIDTH;
             const binBottom = BIN_TOP + BIN_HEIGHT;
 
-            // Bin boundaries
             Physics.constrainToRect(ball, BALL_RADIUS, binLeft, -Infinity, binRight, binBottom);
 
-            // Collide with other balls in bin - treat settled balls as static
             for (const other of balls) {
                 if (other === ball || other.inReservoir) continue;
                 Physics.collideBalls(ball, other, BALL_RADIUS, {
@@ -710,12 +922,9 @@
                 });
             }
 
-            // Re-constrain after ball collisions
             Physics.constrainToRect(ball, BALL_RADIUS, binLeft, -Infinity, binRight, binBottom);
 
-            // Only settle if velocity is low AND position is stable
             if (Physics.isSettled(ball, 0.1)) {
-                // Check stability - need support from both sides or be on floor
                 const onFloor = ball.y + BALL_RADIUS >= binBottom - 1;
 
                 let leftSupport = ball.x - BALL_RADIUS <= binLeft + 1;
@@ -733,7 +942,6 @@
                     }
                 }
 
-                // Only settle if stable
                 if (onFloor || (leftSupport && rightSupport)) {
                     ball.inBin = true;
                     Physics.stop(ball);
@@ -744,7 +952,6 @@
         function updateBallToBallCollisions(ball) {
             for (const other of balls) {
                 if (other === ball || other.inBin) continue;
-
                 Physics.collideBalls(ball, other, BALL_RADIUS, {
                     ball2Static: other.resting
                 });
@@ -752,22 +959,17 @@
         }
 
         function updatePhysics() {
-            // Wake up resting balls if needed
             updateReservoirBallWakeup();
             updateBinBallWakeup();
 
-            // Update each ball
             for (const ball of balls) {
-                // Skip resting reservoir balls and settled bin balls
                 if (ball.resting && ball.inReservoir) continue;
                 if (ball.inBin) continue;
 
-                // Core physics
                 Physics.applyGravity(ball);
                 Physics.applyFriction(ball);
                 Physics.integrate(ball);
 
-                // Zone-specific physics
                 if (ball.inReservoir) {
                     updateReservoirPhysics(ball);
                 } else {
@@ -778,17 +980,14 @@
                     }
                 }
 
-                // Ball-to-ball collisions (outside bins)
                 if (!ball.inBin && ball.y <= BIN_TOP) {
                     updateBallToBallCollisions(ball);
                 }
             }
 
-            // Ensure all reservoir balls stay above slant and don't overlap (safety pass)
             for (const ball of balls) {
                 if (!ball.inReservoir) continue;
 
-                // Resolve overlaps with other reservoir balls
                 for (const other of balls) {
                     if (other === ball || !other.inReservoir) continue;
 
@@ -799,13 +998,11 @@
                         const n = Physics.normalize(ball.x - other.x, ball.y - other.y);
                         const overlap = minDist - dist;
 
-                        // Push both apart, but bias upward to avoid going below slant
                         ball.x += n.x * overlap * 0.5;
                         ball.y += n.y * overlap * 0.5;
                         other.x -= n.x * overlap * 0.5;
                         other.y -= n.y * overlap * 0.5;
 
-                        // If pushed below slant, push back up
                         const ballSlantY = getSlantY(ball.x);
                         if (ball.y + BALL_RADIUS > ballSlantY) {
                             ball.y = ballSlantY - BALL_RADIUS;
@@ -817,7 +1014,6 @@
                     }
                 }
 
-                // Final constraint to slant and walls
                 const slantY = getSlantY(ball.x);
                 if (ball.y + BALL_RADIUS > slantY) ball.y = slantY - BALL_RADIUS;
                 if (ball.x - BALL_RADIUS < RESERVOIR_X) ball.x = RESERVOIR_X + BALL_RADIUS;
@@ -825,14 +1021,12 @@
                 if (ball.y - BALL_RADIUS < RESERVOIR_TOP) ball.y = RESERVOIR_TOP + BALL_RADIUS;
             }
 
-            // Ensure all bin balls stay within bounds and don't overlap (safety pass)
             const binBottom = BIN_TOP + BIN_HEIGHT;
             for (const ball of balls) {
                 if (!ball.inBin) continue;
 
                 const idx = getBinIndex(ball.x);
 
-                // Ball is outside bins - shouldn't be marked as inBin
                 if (idx === -1) {
                     ball.inBin = false;
                     ball.beyondBins = true;
@@ -842,7 +1036,6 @@
                 const binLeft = BIN_AREA_X + idx * BIN_WIDTH;
                 const binRight = binLeft + BIN_WIDTH;
 
-                // Resolve overlaps with other settled balls in same bin
                 for (const other of balls) {
                     if (other === ball || !other.inBin) continue;
 
@@ -853,7 +1046,6 @@
                         const n = Physics.normalize(ball.x - other.x, ball.y - other.y);
                         const overlap = minDist - dist;
 
-                        // Push both apart equally
                         ball.x += n.x * overlap * 0.5;
                         ball.y += n.y * overlap * 0.5;
                         other.x -= n.x * overlap * 0.5;
@@ -861,19 +1053,16 @@
                     }
                 }
 
-                // Constrain to bin boundaries
                 if (ball.y + BALL_RADIUS > binBottom) ball.y = binBottom - BALL_RADIUS;
                 if (ball.x - BALL_RADIUS < binLeft) ball.x = binLeft + BALL_RADIUS;
                 if (ball.x + BALL_RADIUS > binRight) ball.x = binRight - BALL_RADIUS;
             }
 
-            // Update stats and bin counts
             binCounts.fill(0);
             let ballsInBinArea = 0;
             let ballsBeyondBins = 0;
 
             for (const ball of balls) {
-                // Only count balls that are actually in the bin area (below BIN_TOP)
                 if (!ball.inReservoir && ball.y > BIN_TOP) {
                     const idx = getBinIndex(ball.x);
                     if (idx === -1) {
@@ -885,10 +1074,6 @@
                 }
             }
 
-            // Calculate left/center/right percentages
-            // Left bins 1-5 (UI) = indices 0-4 (internal)
-            // Center bins 6-8 (UI) = indices 5-7 (internal)
-            // Right bins 9-13 (UI) = indices 8-12 (internal)
             let leftCount = 0, centerCount = 0, rightCount = 0;
             for (let i = 0; i <= 4; i++) leftCount += binCounts[i];
             for (let i = 5; i <= 7; i++) centerCount += binCounts[i];
@@ -907,11 +1092,9 @@
             rightPctSpan.textContent = rightPct + '%';
         }
 
-        // ======================
-        // Animation Loop
-        // ======================
         function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = canvasColors.bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             if (doorsOpen && doorAngle < DOOR_MAX_ANGLE) {
                 doorAngle += 0.03;
@@ -930,9 +1113,6 @@
             requestAnimationFrame(animate);
         }
 
-        // ======================
-        // Event Handlers
-        // ======================
         dropButton.addEventListener('click', () => {
             if (!doorsOpen) {
                 doorsOpen = true;
@@ -960,7 +1140,6 @@
 
         frictionSlider.addEventListener('input', (e) => {
             const sliderVal = parseFloat(e.target.value);
-            // Convert: 0 = least friction (1.0), 1 = most friction (0.9)
             Physics.friction = 1.0 - sliderVal * 0.1;
             frictionValue.textContent = sliderVal.toFixed(2);
         });
@@ -970,9 +1149,6 @@
             bounceValue.textContent = Physics.bounce.toFixed(2);
         });
 
-        // ======================
-        // Start
-        // ======================
         initBalls();
         initNails();
         animate();
