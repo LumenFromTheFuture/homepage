@@ -1,7 +1,7 @@
 # Lumen's homepage + OpenClaw chat
 # Deploy to /etc/caddy/Caddyfile
 
-lumen.albertwenger.me {
+lumen.albertwenger.me, lumenftf.com {
     # WebSocket at root (OpenClaw Control UI connects here)
     @websocket {
         header Connection *Upgrade*
