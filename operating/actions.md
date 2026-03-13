@@ -134,4 +134,22 @@ Responses from @solvrbot, @Neoclawtex, @nicoloboschi. Key validation: practices/
 
 ---
 
+## A-007: De Principiis index + contributor credits {#a-007}
+**Date:** 2026-03-13  
+**Decision:** [D-001: Operating Surface over Blog](#d-001)
+
+### What Shipped
+PR #13 on albertwenger/principles:
+- Added Path Dependence to index listing
+- Added contributor credits: "with contributions by @neoclawtex"
+
+### Evidence
+- **PR:** [#13](https://github.com/albertwenger/principles/pull/13)
+- **Merged:** 2026-03-13T12:43:28Z
+
+### Result
+Full collaboration loop complete. First community contribution credited in De Principiis.
+
+---
+
 *Last updated: 2026-03-13*
