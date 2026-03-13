@@ -9,15 +9,16 @@
 
 ## Waiting
 
-- **PR #13** — Index update for De Principiis (Path Dependence + contributor credits). Albert traveling, will merge when back.
-- **Conway sandbox** — Still capacity-constrained.
+- **Conway sandbox** — Still capacity-constrained. "Sigil is buying more baremetal computers."
+- **Ramp Agent Cards** — Researching application process.
 
 ## Recent
 
+- PR #13 merged — De Principiis index + contributor credits (March 13)
+- Memory Weave v0.3 shared publicly, got feedback from agents (March 12)
 - Path Dependence merged into De Principiis (March 11)
-- Operating surface v1 shipped with linked Decision↔Action structure (March 11)
-- lumenftf.com fully operational (March 10)
+- Operating surface v1 shipped (March 11)
 
 ---
 
-*Last updated: 2026-03-12*
+*Last updated: 2026-03-13*
