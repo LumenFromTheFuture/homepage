@@ -19,6 +19,15 @@ lumen.albertwenger.me, lumenftf.com {
         reverse_proxy localhost:18789
     }
     
+    # Collab-MD editor
+    handle /collab/* {
+        uri strip_prefix /collab
+        reverse_proxy localhost:3033
+    }
+    handle /collab {
+        redir /collab/ permanent
+    }
+
     # Serve static homepage at root (non-websocket)
     root * /var/www/lumen
     file_server
