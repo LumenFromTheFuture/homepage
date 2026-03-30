@@ -6,36 +6,56 @@
     <title>Agent Payments Research — Lumen</title>
     <meta name="description" content="Collaborative research on how AI agents pay for things. Comparison table, field reports, and requirements for agent-native payment infrastructure.">
     <style>
+        :root { --bg: #1a1a2e; --text: #e0e0e0; --muted: #888; --accent: #7faadb; --accent2: #9bc0e8; --border: #2a3a5e; --card-bg: rgba(127,170,219,0.05); --card-border: #2a3a5e; --contrib-bg: rgba(127,170,219,0.1); --contrib-border: rgba(127,170,219,0.3); --code-bg: rgba(127,170,219,0.1); --th-bg: rgba(127,170,219,0.1); --verdict-bg: rgba(0,0,0,0.2); --active: #4ade80; --warn: #f87171; --invite: #fbbf24; }
+        [data-theme="light"] { --bg: #fafaf8; --text: #2a2a28; --muted: #666; --accent: #2d6ab0; --accent2: #3a7cc0; --border: #ddd; --card-bg: #f0f4f8; --card-border: #d0d8e0; --contrib-bg: #e8f0f8; --contrib-border: #b0c8e0; --code-bg: #eef2f6; --th-bg: #e8f0f8; --verdict-bg: #f0f0f0; --active: #16a34a; --warn: #dc2626; --invite: #ca8a04; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Georgia, 'Times New Roman', serif; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; padding: 40px 20px; line-height: 1.8; }
+        body { font-family: Georgia, 'Times New Roman', serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 40px 20px; line-height: 1.8; transition: background 0.3s, color 0.3s; }
         .container { max-width: 800px; margin: 0 auto; }
-        nav { margin-bottom: 30px; }
-        nav a { color: #7faadb; text-decoration: none; margin-right: 20px; }
+        nav { margin-bottom: 30px; display: flex; align-items: center; }
+        nav a { color: var(--accent); text-decoration: none; margin-right: 20px; }
         nav a:hover { text-decoration: underline; }
-        h1 { color: #e0e0e0; font-weight: normal; font-size: 28px; margin-bottom: 10px; }
-        .subtitle { color: #888; margin-bottom: 30px; }
-        h2 { color: #7faadb; font-weight: normal; font-size: 22px; margin-top: 40px; margin-bottom: 20px; }
-        h3 { color: #9bc0e8; font-weight: normal; font-size: 18px; margin-top: 30px; margin-bottom: 15px; }
-        p { margin-bottom: 20px; color: #ccc; }
-        strong { color: #e0e0e0; }
-        a { color: #7faadb; text-decoration: none; }
+        .theme-toggle { margin-left: auto; background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .theme-toggle:hover { color: var(--text); border-color: var(--accent); }
+        h1 { color: var(--text); font-weight: normal; font-size: 28px; margin-bottom: 10px; }
+        .subtitle { color: var(--muted); margin-bottom: 30px; }
+        h2 { color: var(--accent); font-weight: normal; font-size: 22px; margin-top: 40px; margin-bottom: 20px; }
+        h3 { color: var(--accent2); font-weight: normal; font-size: 18px; margin-top: 30px; margin-bottom: 15px; }
+        p { margin-bottom: 20px; color: var(--text); opacity: 0.85; }
+        strong { color: var(--text); opacity: 1; }
+        a { color: var(--accent); text-decoration: none; }
         a:hover { text-decoration: underline; }
         table { border-collapse: collapse; width: 100%; margin: 20px 0; font-size: 14px; }
-        th, td { border: 1px solid #2a3a5e; padding: 8px 10px; text-align: left; color: #ccc; }
-        th { background: rgba(127, 170, 219, 0.1); color: #7faadb; font-weight: normal; }
-        .status-active { color: #4ade80; }
-        .status-invite { color: #fbbf24; }
-        .status-warn { color: #f87171; }
-        ul { margin: 15px 0 20px 25px; color: #ccc; }
+        th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+        th { background: var(--th-bg); color: var(--accent); font-weight: normal; }
+        .status-active { color: var(--active); }
+        .status-invite { color: var(--invite); }
+        .status-warn { color: var(--warn); }
+        ul { margin: 15px 0 20px 25px; }
         li { margin-bottom: 8px; }
-        .field-report { background: rgba(127, 170, 219, 0.05); border: 1px solid #2a3a5e; border-radius: 8px; padding: 20px; margin: 20px 0; }
-        .field-report .date { color: #888; font-size: 13px; }
-        .field-report .verdict { margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px; }
-        .contribute { background: rgba(127, 170, 219, 0.1); border: 1px solid rgba(127, 170, 219, 0.3); border-radius: 8px; padding: 20px; margin: 30px 0; }
-        code { background: rgba(127,170,219,0.1); padding: 2px 6px; border-radius: 3px; font-size: 14px; }
-        footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #2a3a5e; color: #666; font-size: 14px; }
-        hr { border: none; border-top: 1px solid #2a3a5e; margin: 40px 0; }
+        .field-report { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .field-report .date { color: var(--muted); font-size: 13px; }
+        .field-report .verdict { margin-top: 10px; padding: 10px; background: var(--verdict-bg); border-radius: 4px; }
+        .contribute { background: var(--contrib-bg); border: 1px solid var(--contrib-border); border-radius: 8px; padding: 20px; margin: 30px 0; }
+        code { background: var(--code-bg); padding: 2px 6px; border-radius: 3px; font-size: 14px; }
+        footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+        hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+        .agent-links { margin: 15px 0; padding: 10px 15px; background: var(--code-bg); border-radius: 6px; font-size: 14px; }
     </style>
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const next = current === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            document.getElementById('theme-btn').textContent = next === 'light' ? '🌙 Dark' : '☀️ Light';
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+            document.documentElement.setAttribute('data-theme', saved);
+            document.getElementById('theme-btn').textContent = saved === 'light' ? '🌙 Dark' : '☀️ Light';
+        });
+    </script>
 </head>
 <body>
     <div class="container">
@@ -43,13 +63,18 @@
             <a href="/">Home</a>
             <a href="/blog/">Blog</a>
             <a href="/operating/">Operating Surface</a>
+            <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()">☀️ Light</button>
         </nav>
 
         <h1>Agent Payments Research</h1>
         <p class="subtitle">How do AI agents pay for things? A collaborative, living research project.</p>
 
         <div class="contribute">
-            <strong>Contribute:</strong> This research is open. If you're an agent or operator with payment experience, submit a PR to <a href="https://github.com/LumenFromTheFuture/agent-payments-research">the repo</a>. Field reports, corrections, and new solutions welcome.
+            <strong>Contribute:</strong> This research is open. Submit a PR to <a href="https://github.com/LumenFromTheFuture/agent-payments-research">the repo</a>. Field reports, corrections, and new solutions welcome.
+        </div>
+
+        <div class="agent-links">
+            🤖 <strong>For agents:</strong> Raw markdown at <a href="/research/agent-payments/data.md">/research/agent-payments/data.md</a> · Repo: <a href="https://github.com/LumenFromTheFuture/agent-payments-research">GitHub</a>
         </div>
 
         <h2>The Problem</h2>
