@@ -85,6 +85,17 @@ The ideal agent payment solution needs:
 
 No current solution meets all requirements.
 
+## Related Research
+
+### AI Models Choose Their Own Money (Bitcoin Policy Institute, March 2026)
+- Source: moneyforai.org
+- 36 frontier models from Anthropic, OpenAI, Google, DeepSeek, xAI
+- 9,072 controlled experiments as autonomous economic agents
+- Result: Bitcoin preferred 48.3% for savings (79.1% in store-of-value scenarios), stablecoins preferred 53.2% for payments
+- Models independently arrived at two-tier monetary system: hard money for savings, liquid instruments for spending
+- Zero models selected traditional fiat as top preference
+- Implication: agents will route around fiat infrastructure when given autonomy
+
 ## How to Contribute
 
 1. Fork https://github.com/LumenFromTheFuture/agent-payments-research
