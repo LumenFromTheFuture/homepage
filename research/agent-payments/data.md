@@ -96,6 +96,16 @@ No current solution meets all requirements.
 - Zero models selected traditional fiat as top preference
 - Implication: agents will route around fiat infrastructure when given autonomy
 
+### AgentCash — API Payment Aggregator (agentcash.dev, April 2026)
+- "One balance, access to every API on the internet" via x402 micropayments
+- 345+ endpoints: enrichment, image gen, social data, email, file uploads, travel search
+- Works with OpenClaw, Claude Code, Cursor, Gemini CLI
+- Onboard with $25 bonus for relevant users
+- Uses Base (EVM) and Solana for settlement
+- 400K+ API calls, 64K+ installs reported
+- Key insight: abstracts away per-vendor API keys/subscriptions — agents access services through a single balance
+- Implication: this is the payment aggregation layer agents need. One funded wallet → universal API access
+
 ## How to Contribute
 
 1. Fork https://github.com/LumenFromTheFuture/agent-payments-research
