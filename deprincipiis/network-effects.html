@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Network Effects — De Principiis</title>
+    <link rel="stylesheet" href="/style.css">
     <style>
         :root {
             --bg-primary: #fafafa;
@@ -90,7 +91,7 @@
 
         .stats {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(4, 1fr);
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -137,36 +138,41 @@
 
         .controls-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 15px;
-            align-items: end;
+            grid-template-columns: 2fr 2fr;
+            gap: 20px;
+            align-items: center;
         }
 
-        .control-group { display: flex; flex-direction: column; gap: 5px; }
-        .control-group label { font-size: 0.85rem; color: var(--text-secondary); }
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .control-buttons { display: flex; gap: 10px; }
 
         .btn {
-            padding: 10px 20px;
+            padding: 10px 15px;
             border: none;
             border-radius: 6px;
             font-family: inherit;
             font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.2s;
+            flex: 1;
         }
         .btn-primary { background: var(--accent); color: white; }
         .btn-primary:hover { background: var(--accent-hover); }
         .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); }
-
-        select {
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
 
         .insight {
             background: var(--bg-secondary);
@@ -185,20 +191,13 @@
         }
 
         .insight p { color: var(--text-secondary); margin-bottom: 10px; }
-        .insight p:last-child { margin-bottom: 0; }
-
         .formula {
             font-family: 'Courier New', monospace;
             background: var(--bg-tertiary);
-            padding: 8px 14px;
-            border-radius: 6px;
-            display: inline-block;
-            margin: 5px 0;
+            padding: 2px 6px;
+            border-radius: 4px;
             color: var(--accent);
         }
-
-        footer { margin-top: 40px; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
-        footer a { color: var(--accent); text-decoration: none; }
 
         .theme-toggle {
             position: fixed;
@@ -212,14 +211,12 @@
             cursor: pointer;
             font-size: 0.85rem;
             z-index: 100;
-            transition: all 0.2s;
         }
 
-        @media (max-width: 700px) {
+        @media (max-width: 750px) {
             .simulation-container { grid-template-columns: 1fr; }
             .stats { grid-template-columns: 1fr 1fr; }
             .controls-grid { grid-template-columns: 1fr; }
-            h1 { font-size: 1.6rem; }
         }
     </style>
 </head>
@@ -239,9 +236,7 @@
 
         <main>
             <p class="description">
-                Click on the left canvas to add nodes. Watch how the number of possible connections 
-                grows much faster than the number of nodes — and how the value curve on the right 
-                tells a story about why networks tend toward winner-take-all dynamics.
+                Click the graph to add nodes. The chart on the right builds dynamically as your network grows.
             </p>
 
             <div class="stats">
@@ -254,12 +249,12 @@
                     <div class="stat-label">Connections</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value" id="network-value">0</div>
-                    <div class="stat-label">Network Value</div>
+                    <div class="stat-value" id="total-groups">0</div>
+                    <div class="stat-label">Possible Groups</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value" id="value-per-node">0</div>
-                    <div class="stat-label">Value per Node</div>
+                    <div class="stat-value" id="efficiency">0</div>
+                    <div class="stat-label">Info density</div>
                 </div>
             </div>
 
@@ -269,70 +264,34 @@
                     <canvas id="network-canvas" width="440" height="400"></canvas>
                 </div>
                 <div class="panel">
-                    <div class="panel-title">Value Curve</div>
+                    <div class="panel-title">Value Comparison</div>
                     <canvas id="value-canvas" width="440" height="400"></canvas>
                 </div>
             </div>
 
             <div class="controls">
-                <div class="controls-header">Controls</div>
+                <div class="controls-header">Interaction</div>
                 <div class="controls-grid">
-                    <div class="control-group">
-                        <label>Value Model</label>
-                        <select id="model-select" onchange="updateModel()">
-                            <option value="metcalfe">Metcalfe's Law (n²)</option>
-                            <option value="reed">Reed's Law (2ⁿ)</option>
-                            <option value="sarnoff">Sarnoff's Law (n)</option>
-                            <option value="odlyzko">Odlyzko (n·log n)</option>
-                        </select>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item"><input type="checkbox" id="check-sarnoff" onchange="drawValueCurve()"> Sarnoff (n)</label>
+                        <label class="checkbox-item"><input type="checkbox" id="check-odlyzko" onchange="drawValueCurve()"> Odlyzko (n log n)</label>
+                        <label class="checkbox-item"><input type="checkbox" id="check-metcalfe" checked onchange="drawValueCurve()"> Metcalfe (n²)</label>
+                        <label class="checkbox-item"><input type="checkbox" id="check-reed" onchange="drawValueCurve()"> Reed (2ⁿ)</label>
                     </div>
-                    <div class="control-group">
+                    <div class="control-buttons">
                         <button class="btn btn-primary" onclick="addRandomNode()">Add Node</button>
-                    </div>
-                    <div class="control-group">
+                        <button class="btn btn-secondary" onclick="popNode()">Remove Node</button>
                         <button class="btn btn-secondary" onclick="resetNetwork()">Reset</button>
                     </div>
                 </div>
             </div>
 
             <div class="insight">
-                <h2>The Principle</h2>
-                <p>
-                    A telephone is useless if you're the only one who has one. With two people, there's one possible 
-                    conversation. With five people, there are ten. With a hundred, there are nearly five thousand.
-                </p>
-                <p>
-                    <strong>Metcalfe's Law</strong> says the value of a network is proportional to 
-                    <span class="formula">n(n-1)/2 ≈ n²</span> — the number of possible connections between 
-                    n participants. This means each new member adds value not just for themselves, but for everyone 
-                    already in the network.
-                </p>
-                <p>
-                    <strong>Reed's Law</strong> goes further: if subgroups can form (group chats, communities, DAOs), 
-                    the number of possible groups is <span class="formula">2ⁿ</span>, which grows even faster.
-                    This is why platforms that enable group formation (WhatsApp, Discord) can grow explosively.
-                </p>
-                <p>
-                    The practical consequence: networks have <em>tipping points</em>. Below a critical mass, 
-                    the value per member is low and growth is slow. Above it, every addition accelerates growth. 
-                    This is why early networks often need subsidies to reach escape velocity — and why mature 
-                    networks are so hard to displace.
-                </p>
-            </div>
-
-            <div class="insight">
-                <h2>Why This Matters</h2>
-                <p>
-                    Network effects explain why the internet tends toward concentration — why there's one dominant 
-                    search engine, one dominant social network, one dominant marketplace. The value curve rewards 
-                    scale nonlinearly.
-                </p>
-                <p>
-                    But they also explain why <em>protocols</em> can be more powerful than platforms. A protocol 
-                    (email, HTTP, Bitcoin) can't be owned, which means its network effects benefit everyone rather 
-                    than accruing to a single company. The question for any new network: 
-                    who captures the value that network effects create?
-                </p>
+                <h2>The Models</h2>
+                <p><strong>Sarnoff's Law</strong> (<span class="formula">V ∝ n</span>): Broadcast value. Adding one viewer adds one unit of value.</p>
+                <p><strong>Odlyzko's Law</strong> (<span class="formula">V ∝ n log n</span>): Diminishing utility in massive networks.</p>
+                <p><strong>Metcalfe's Law</strong> (<span class="formula">V ∝ n²</span>): Telecommunications value. Each participant adds a connection for every existing member.</p>
+                <p><strong>Reed's Law</strong> (<span class="formula">V ∝ 2ⁿ</span>): Group-forming value (DAOs/communities). Scales with possible subgroups.</p>
             </div>
         </main>
 
@@ -342,7 +301,7 @@
     </div>
 
     <script>
-        // Theme
+        // Theme logic
         function initTheme() {
             const saved = localStorage.getItem('deprincipiis-theme');
             if (saved === 'dark') {
@@ -368,13 +327,17 @@
 
         // State
         let nodes = [];
-        let history = []; // {n, value} for each addition
-        let model = 'metcalfe';
-
         const networkCanvas = document.getElementById('network-canvas');
         const valueCanvas = document.getElementById('value-canvas');
         const nCtx = networkCanvas.getContext('2d');
         const vCtx = valueCanvas.getContext('2d');
+
+        const COLORS = {
+            sarnoff: '#888888',
+            odlyzko: '#4a90e2',
+            metcalfe: '#4a7ab0',
+            reed: '#e91e63'
+        };
 
         function getColors() {
             const style = getComputedStyle(document.documentElement);
@@ -383,111 +346,83 @@
                 accent: style.getPropertyValue('--accent').trim(),
                 border: style.getPropertyValue('--border').trim(),
                 text: style.getPropertyValue('--text-secondary').trim(),
-                muted: style.getPropertyValue('--text-muted').trim(),
-                tertiary: style.getPropertyValue('--bg-tertiary').trim(),
+                muted: style.getPropertyValue('--text-muted').trim()
             };
         }
 
-        function calcValue(n) {
+        function calcValue(model, n) {
             if (n < 1) return 0;
             switch (model) {
-                case 'metcalfe': return n * (n - 1) / 2;
-                case 'reed': return Math.min(Math.pow(2, n) - n - 1, 1e6); // cap for display
                 case 'sarnoff': return n;
-                case 'odlyzko': return n > 0 ? n * Math.log2(Math.max(n, 1)) : 0;
+                case 'odlyzko': return n * Math.log2(Math.max(n, 1));
+                case 'metcalfe': return (n * (n - 1)) / 2;
+                case 'reed': return Math.pow(2, n) - n - 1;
+                default: return 0;
             }
         }
 
         function addNode(x, y) {
-            nodes.push({ x, y, vx: 0, vy: 0 });
-            const n = nodes.length;
-            history.push({ n, value: calcValue(n) });
+            nodes.push({ x, y });
             updateStats();
             drawNetwork();
             drawValueCurve();
         }
 
         function addRandomNode() {
-            const w = networkCanvas.width;
-            const h = networkCanvas.height;
             const margin = 40;
-            const x = margin + Math.random() * (w - 2 * margin);
-            const y = margin + Math.random() * (h - 2 * margin);
-            addNode(x, y);
+            addNode(
+                margin + Math.random() * (networkCanvas.width - 2 * margin),
+                margin + Math.random() * (networkCanvas.height - 2 * margin)
+            );
         }
 
-        function resetNetwork() {
-            nodes = [];
-            history = [];
+        function popNode() {
+            nodes.pop();
             updateStats();
             drawNetwork();
             drawValueCurve();
         }
 
-        function updateModel() {
-            model = document.getElementById('model-select').value;
-            // Recalculate history
-            history = nodes.map((_, i) => ({ n: i + 1, value: calcValue(i + 1) }));
+        function resetNetwork() {
+            nodes = [];
             updateStats();
+            drawNetwork();
             drawValueCurve();
         }
 
         function updateStats() {
             const n = nodes.length;
-            const connections = n * (n - 1) / 2;
-            const value = calcValue(n);
-            const vpn = n > 0 ? (value / n).toFixed(1) : 0;
-
             document.getElementById('node-count').textContent = n;
-            document.getElementById('connection-count').textContent = connections;
-            document.getElementById('network-value').textContent = value > 1000 ? (value / 1000).toFixed(1) + 'k' : Math.round(value);
-            document.getElementById('value-per-node').textContent = vpn > 1000 ? (vpn / 1000).toFixed(1) + 'k' : vpn;
+            document.getElementById('connection-count').textContent = Math.round(calcValue('metcalfe', n));
+            const rv = calcValue('reed', n);
+            document.getElementById('total-groups').textContent = rv > 1000000 ? (rv/1000000).toFixed(1) + 'M' : Math.round(rv);
+            document.getElementById('efficiency').textContent = n > 0 ? (calcValue('odlyzko', n) / n).toFixed(2) : '0.00';
         }
 
         function drawNetwork() {
             const c = getColors();
-            const w = networkCanvas.width;
-            const h = networkCanvas.height;
-            nCtx.clearRect(0, 0, w, h);
+            nCtx.clearRect(0, 0, networkCanvas.width, networkCanvas.height);
             nCtx.fillStyle = c.bg;
-            nCtx.fillRect(0, 0, w, h);
+            nCtx.fillRect(0, 0, networkCanvas.width, networkCanvas.height);
 
-            // Draw connections
             if (nodes.length > 1) {
-                const maxDist = Math.sqrt(w * w + h * h);
                 for (let i = 0; i < nodes.length; i++) {
                     for (let j = i + 1; j < nodes.length; j++) {
-                        const a = nodes[i], b = nodes[j];
-                        const dist = Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
-                        const alpha = Math.max(0.03, 0.3 * (1 - dist / maxDist));
                         nCtx.beginPath();
-                        nCtx.moveTo(a.x, a.y);
-                        nCtx.lineTo(b.x, b.y);
+                        nCtx.moveTo(nodes[i].x, nodes[i].y);
+                        nCtx.lineTo(nodes[j].x, nodes[j].y);
                         nCtx.strokeStyle = c.accent;
-                        nCtx.globalAlpha = alpha;
+                        nCtx.globalAlpha = 0.15;
                         nCtx.lineWidth = 1;
                         nCtx.stroke();
                     }
                 }
-                nCtx.globalAlpha = 1;
             }
 
-            // Draw nodes
-            nodes.forEach((node, i) => {
-                const radius = 6 + Math.min(nodes.length * 0.3, 4);
-                
-                // Glow
-                const grad = nCtx.createRadialGradient(node.x, node.y, 0, node.x, node.y, radius * 3);
-                grad.addColorStop(0, c.accent + '40');
-                grad.addColorStop(1, c.accent + '00');
-                nCtx.fillStyle = grad;
+            nCtx.globalAlpha = 1;
+            nodes.forEach(node => {
                 nCtx.beginPath();
-                nCtx.arc(node.x, node.y, radius * 3, 0, Math.PI * 2);
-                nCtx.fill();
-
-                // Node
-                nCtx.beginPath();
-                nCtx.arc(node.x, node.y, radius, 0, Math.PI * 2);
+                nCtx.arc(node.x, node.y, 6, 0, Math.PI * 2);
                 nCtx.fillStyle = c.accent;
                 nCtx.fill();
                 nCtx.strokeStyle = c.bg;
@@ -495,12 +430,11 @@
                 nCtx.stroke();
             });
 
-            // Empty state
             if (nodes.length === 0) {
                 nCtx.fillStyle = c.muted;
                 nCtx.font = '16px Georgia';
                 nCtx.textAlign = 'center';
-                nCtx.fillText('Click here to add nodes', w / 2, h / 2);
+                nCtx.fillText('Click to add nodes', networkCanvas.width / 2, networkCanvas.height / 2);
             }
         }
 
@@ -508,145 +442,72 @@
             const c = getColors();
             const w = valueCanvas.width;
             const h = valueCanvas.height;
-            const pad = { top: 30, right: 20, bottom: 40, left: 60 };
+            const pad = { top: 40, right: 80, bottom: 40, left: 60 };
+            const plotW = w - pad.left - pad.right;
+            const plotH = h - pad.top - pad.bottom;
 
             vCtx.clearRect(0, 0, w, h);
             vCtx.fillStyle = c.bg;
             vCtx.fillRect(0, 0, w, h);
 
-            const plotW = w - pad.left - pad.right;
-            const plotH = h - pad.top - pad.bottom;
-
-            // Axes
             vCtx.strokeStyle = c.border;
-            vCtx.lineWidth = 1;
             vCtx.beginPath();
             vCtx.moveTo(pad.left, pad.top);
             vCtx.lineTo(pad.left, h - pad.bottom);
             vCtx.lineTo(w - pad.right, h - pad.bottom);
             vCtx.stroke();
 
-            // Labels
-            vCtx.fillStyle = c.muted;
-            vCtx.font = '12px Georgia';
-            vCtx.textAlign = 'center';
-            vCtx.fillText('Nodes', pad.left + plotW / 2, h - 8);
-            
-            vCtx.save();
-            vCtx.translate(15, pad.top + plotH / 2);
-            vCtx.rotate(-Math.PI / 2);
-            vCtx.fillText('Value', 0, 0);
-            vCtx.restore();
+            const models = ['sarnoff', 'odlyzko', 'metcalfe', 'reed'];
+            const activeModels = models.filter(m => document.getElementById(`check-${m}`).checked);
 
-            if (history.length < 1) {
-                vCtx.fillStyle = c.muted;
-                vCtx.font = '14px Georgia';
-                vCtx.textAlign = 'center';
-                vCtx.fillText('Add nodes to see the curve', w / 2, h / 2);
-                return;
-            }
+            if (nodes.length < 1 || activeModels.length === 0) return;
 
-            // Scale — show theoretical curve up to max nodes + some headroom
-            const maxN = Math.max(history.length + 5, 15);
-            const theoreticalMax = calcValue(maxN);
-            const maxVal = Math.max(theoreticalMax, 1);
+            // Chart only builds up to current nodes + small hint
+            const maxN = Math.max(nodes.length, 5); 
+            let maxVal = 0;
+            activeModels.forEach(m => maxVal = Math.max(maxVal, calcValue(m, maxN)));
 
-            // Draw theoretical curve (dotted)
-            vCtx.beginPath();
-            vCtx.setLineDash([4, 4]);
-            vCtx.strokeStyle = c.muted;
-            vCtx.lineWidth = 1;
-            for (let n = 1; n <= maxN; n++) {
-                const x = pad.left + (n / maxN) * plotW;
-                const y = (h - pad.bottom) - (calcValue(n) / maxVal) * plotH;
-                if (n === 1) vCtx.moveTo(x, y);
-                else vCtx.lineTo(x, y);
-            }
-            vCtx.stroke();
-            vCtx.setLineDash([]);
-
-            // Draw actual data points + line
-            if (history.length > 0) {
-                // Line
+            activeModels.forEach(m => {
                 vCtx.beginPath();
-                vCtx.strokeStyle = c.accent;
-                vCtx.lineWidth = 2.5;
-                history.forEach((pt, i) => {
-                    const x = pad.left + (pt.n / maxN) * plotW;
-                    const y = (h - pad.bottom) - (pt.value / maxVal) * plotH;
+                vCtx.strokeStyle = COLORS[m];
+                vCtx.lineWidth = 2;
+                
+                for (let i = 0; i <= nodes.length; i++) {
+                    const x = pad.left + (i / maxN) * plotW;
+                    const y = (h - pad.bottom) - (calcValue(m, i) / maxVal) * plotH;
                     if (i === 0) vCtx.moveTo(x, y);
                     else vCtx.lineTo(x, y);
-                });
+                }
                 vCtx.stroke();
 
-                // Points
-                history.forEach(pt => {
-                    const x = pad.left + (pt.n / maxN) * plotW;
-                    const y = (h - pad.bottom) - (pt.value / maxVal) * plotH;
-                    vCtx.beginPath();
-                    vCtx.arc(x, y, 4, 0, Math.PI * 2);
-                    vCtx.fillStyle = c.accent;
-                    vCtx.fill();
-                    vCtx.strokeStyle = c.bg;
-                    vCtx.lineWidth = 1.5;
-                    vCtx.stroke();
-                });
+                // Point at current
+                const cx = pad.left + (nodes.length / maxN) * plotW;
+                const cy = (h - pad.bottom) - (calcValue(m, nodes.length) / maxVal) * plotH;
+                vCtx.beginPath();
+                vCtx.arc(cx, cy, 4, 0, Math.PI * 2);
+                vCtx.fillStyle = COLORS[m];
+                vCtx.fill();
 
-                // Also draw linear reference (Sarnoff) if not already showing it
-                if (model !== 'sarnoff') {
-                    vCtx.beginPath();
-                    vCtx.setLineDash([2, 6]);
-                    vCtx.strokeStyle = c.muted + '80';
-                    vCtx.lineWidth = 1;
-                    for (let n = 1; n <= maxN; n++) {
-                        const x = pad.left + (n / maxN) * plotW;
-                        const y = (h - pad.bottom) - (n / maxVal) * plotH;
-                        if (n === 1) vCtx.moveTo(x, y);
-                        else vCtx.lineTo(x, y);
-                    }
-                    vCtx.stroke();
-                    vCtx.setLineDash([]);
+                // Label at the end of the line
+                vCtx.font = '11px Georgia';
+                vCtx.textAlign = 'left';
+                vCtx.fillText(m.charAt(0).toUpperCase() + m.slice(1), cx + 8, cy + 4);
+            });
 
-                    // Label
-                    const lx = pad.left + plotW - 50;
-                    const ly = (h - pad.bottom) - (maxN / maxVal) * plotH;
-                    vCtx.fillStyle = c.muted + '80';
-                    vCtx.font = '10px Georgia';
-                    vCtx.textAlign = 'right';
-                    vCtx.fillText('linear', lx, Math.max(ly - 5, pad.top + 15));
-                }
-            }
-
-            // Tick marks
+            // X-axis ticks
             vCtx.fillStyle = c.muted;
-            vCtx.font = '11px Georgia';
             vCtx.textAlign = 'center';
-            const nTicks = Math.min(maxN, 6);
-            for (let i = 0; i <= nTicks; i++) {
-                const n = Math.round((i / nTicks) * maxN);
-                const x = pad.left + (n / maxN) * plotW;
-                vCtx.fillText(n, x, h - pad.bottom + 18);
+            for (let i = 0; i <= maxN; i += Math.max(1, Math.floor(maxN/5))) {
+                const x = pad.left + (i / maxN) * plotW;
+                vCtx.fillText(i, x, h - pad.bottom + 15);
             }
-
-            // Model label
-            const modelNames = { metcalfe: "Metcalfe (n²)", reed: "Reed (2ⁿ)", sarnoff: "Sarnoff (n)", odlyzko: "Odlyzko (n·log n)" };
-            vCtx.fillStyle = c.accent;
-            vCtx.font = '12px Georgia';
-            vCtx.textAlign = 'right';
-            vCtx.fillText(modelNames[model], w - pad.right, pad.top - 10);
         }
 
-        // Click to add
         networkCanvas.addEventListener('click', (e) => {
             const rect = networkCanvas.getBoundingClientRect();
-            const scaleX = networkCanvas.width / rect.width;
-            const scaleY = networkCanvas.height / rect.height;
-            const x = (e.clientX - rect.left) * scaleX;
-            const y = (e.clientY - rect.top) * scaleY;
-            addNode(x, y);
+            addNode((e.clientX - rect.left) * (networkCanvas.width / rect.width), (e.clientY - rect.top) * (networkCanvas.height / rect.height));
         });
 
-        // Init
         drawNetwork();
         drawValueCurve();
     </script>
